@@ -44,7 +44,7 @@ message Data {  // This is the outer layer. The Data message wraps all informati
 
     message Header { // The header collects all global data 
         sint32 time_zone_offset_min                 = 1; // The time zone is set in minutes 
-		com.preventicus.pcore.Version pcore_version = 2; // The version of the used pcore definition
+        com.preventicus.pcore.Version pcore_version = 2; // The version of the used pcore definition
     }
 
     Header header                 = 1; // The header collects all global data
