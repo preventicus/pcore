@@ -37,18 +37,8 @@ syntax = "proto3";
 
 package com.preventicus.pcore;
 
-import "pcore_external.proto";
-import "pcore_version.proto";
-
-message Data {  // This is the outer layer. The Data message wraps all informations.
-
-    message Header { // The header collects all global data 
-        sint32 time_zone_offset_min                 = 1; // The time zone is set in minutes 
-		com.preventicus.pcore.Version pcore_version = 2; // The version of the used pcore definition
-    }
-
-    Header header                 = 1; // The header collects all global data
-    com.preventicus.pcore.Raw raw = 2; // Raw collects all raw sensor signals
-    reserved                        3; // Reserved for internal usage.
-	
+message Version {
+	uint32 major = 1;
+	uint32 minor = 2;
+	uint32 patch = 3;
 }
