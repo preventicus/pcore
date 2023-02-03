@@ -37,7 +37,7 @@ syntax = "proto3";
 
 package com.preventicus.pcore;
 
-import "pcore_external.proto";
+import "pcore_raw.proto";
 import "pcore_version.proto";
 
 message Data {  // This is the outer layer. The Data message wraps all informations.
