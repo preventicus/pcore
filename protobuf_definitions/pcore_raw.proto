@@ -73,7 +73,7 @@ message Raw { // Raw collects all raw sensor signals
 			}
 		
 			message DifferentialBlock {		
-				repeated sint32 diff_values = 1;
+				repeated sint32 differential_values = 1;
 			}
 
 			oneof Metadata {
