@@ -47,9 +47,9 @@ message Raw { // Raw collects all raw sensor signals
 	message Sensor {
 
 		message DifferentialTimestampsContainer {
-			uint64 first_timestamp_ms               = 1;
-			repeated uint32 block_intervals_ms      = 2;
-			repeated uint32 timestamps_intervals_ms = 3;
+			uint64 first_unix_timestamp_ms            = 1;
+			repeated uint32 block_differences_ms      = 2;
+			repeated uint32 timestamps_differences_ms = 3;
 		}
 
 		message Channel {
@@ -57,7 +57,7 @@ message Raw { // Raw collects all raw sensor signals
 			message PpgMetadata {
 
 				oneof Light {
-					uint32 wavelength_nm = 1;
+					uint32 wavelength_nm              = 1;
 					com.preventicus.pcore.Color color = 2;
 				}
 	
