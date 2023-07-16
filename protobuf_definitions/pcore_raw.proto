@@ -48,7 +48,7 @@ message Raw { // Raw collects all raw sensor signals
 
 		message DifferentialTimestampsContainer {
 			uint64 first_unix_timestamp_ms            = 1;
-			repeated uint32 block_differences_ms      = 2;
+			repeated uint32 blocks_differences_ms     = 2;
 			repeated uint32 timestamps_differences_ms = 3;
 		}
 
