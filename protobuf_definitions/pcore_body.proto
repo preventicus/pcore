@@ -1,0 +1,128 @@
+/* 
+
+	Created by Steve Merschel 2022.
+
+	Copyright © 2022 PREVENTICUS GmbH
+
+	Redistribution and use in source and binary forms, with or without modification,
+	are permitted provided that the following conditions are met:
+
+	1. Redistributions of source code must retain the above copyright notice,
+	this list of conditions and the following disclaimer.
+
+	2. Redistributions in binary form must reproduce the above copyright notice,
+	this list of conditions and the following disclaimer in the documentation 
+	and/or other materials provided with the distribution.
+
+	3. Neither the name of the copyright holder nor the names of its contributors
+	may be used to endorse or promote products derived from this software without
+	specific prior written permission.
+
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+	INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+	LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+	OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+	OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*/
+
+syntax = "proto3";
+package com.preventicus.pcore;
+option optimize_for = SPEED;
+
+message Body {
+
+	message Sensor {
+
+		message AbsoluteTimestampsContainer {
+			repeated uint64 unix_timestamps_ms = 1;
+		}
+
+		message DifferentialTimestampsContainer {
+			uint64 first_unix_timestamp_ms = 1;
+			repeated uint32 outer_sections_differences_ms = 2;
+			repeated uint32 inner_sections_differences_ms = 3;
+			repeated uint32 sections_sizes = 4;
+		} 
+
+		message AbsoluteValuesContainer {
+			repeated uint32 values = 1;
+		}
+
+		message DifferentialValuesContainer {
+			repeated sint32 values = 1;
+		}
+
+		message Accelerometer {
+
+			enum Type {
+				TYPE_UNSPECIFIED = 0;
+				TYPE_X_COORDINATE = 1;
+				TYPE_Y_COORDINATE = 2;
+				TYPE_Z_COORDINATE = 3;
+				TYPE_EUCLIDEAN_DIFFERENCES_NORM = 4;
+			}
+
+			oneof Values {
+				AbsoluteValuesContainer absolute_values_container = 1;
+				DifferentialValuesContainer differential_values_container = 2;
+			}
+			reserved 3 to 6; // reserved for other values types
+
+			Type type = 15;
+
+		}
+
+		message Photoplethysmograph {
+
+			enum Color {
+				COLOR_UNSPECIFIED = 0;
+				COLOR_GREEN = 1;
+				COLOR_RED = 2;
+				COLOR_BLUE = 3;
+			}
+
+			oneof Values {
+				AbsoluteValuesContainer absolute_values_container = 1;
+				DifferentialValuesContainer differential_values_container = 2;
+			}
+			reserved 3 to 6; // reserved for other values types
+
+			oneof Light {
+				uint32 wavelength_nm = 14;
+				Color color = 15;
+			}
+
+		}
+
+		message AccelerometerContainer { // helper container to wrap the repeated field for the oneof field
+			repeated Accelerometer accelerometers = 1;
+		}
+
+		message PhotoplethysmographContainer { // helper container to wrap the repeated field for the oneof field
+			repeated Photoplethysmograph photoplethysmographs = 1;
+		}
+
+		oneof Timestamps {
+			AbsoluteTimestampsContainer absolute_timestamps_container = 1;
+			DifferentialTimestampsContainer differential_timestamps_container = 2;
+		}
+
+		oneof Channels {
+			AccelerometerContainer accelerometer_container = 3;
+			PhotoplethysmographContainer photoplethysmograph_container = 4;
+		}
+		reserved 5 to 15; // reserved for more sensor channels
+
+		uint32 significant_digits = 100;
+
+	}
+
+	repeated Sensor sensors = 1;
+
+}

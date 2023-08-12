@@ -2,9 +2,7 @@
 
 	Created by Steve Merschel 2022.
 
-	Version: 1.0.0
-
-	Copyright © 2022 PREVENTICUS GmbH
+	Copyright © 2023 PREVENTICUS GmbH
 
 	Redistribution and use in source and binary forms, with or without modification,
 	are permitted provided that the following conditions are met:
@@ -32,13 +30,13 @@
 	OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
-
+    
 syntax = "proto3";
-
 package com.preventicus.pcore;
+import "pcore_version.proto";
+option optimize_for = SPEED;
 
-enum SensorType {
-    SENSOR_TYPE_NONE = 0;
-    SENSOR_TYPE_PPG  = 1;
-    SENSOR_TYPE_ACC  = 2;
+message Header { // The header collects all global data 
+    sint32 time_zone_offset_min                 = 1; // The time zone is set in minutes 
+    com.preventicus.pcore.Version pcore_version = 2; // The version of the used pcore definition
 }
