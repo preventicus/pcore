@@ -39,22 +39,22 @@ message Body {
 
 	message Sensor {
 
-		message AbsoluteTimestampsContainer {
+		message UncompressedTimestampsContainer {
 			repeated uint64 unix_timestamps_ms = 1;
 		}
 
-		message DifferentialTimestampsContainer {
+		message CompressedTimestampsContainer {
 			uint64 first_unix_timestamp_ms = 1;
 			repeated uint32 outer_sections_differences_ms = 2;
 			repeated uint32 inner_sections_differences_ms = 3;
 			repeated uint32 sections_sizes = 4;
-		} 
+		}
 
-		message AbsoluteValuesContainer {
+		message UncompressedValuesContainer {
 			repeated uint32 values = 1;
 		}
 
-		message DifferentialValuesContainer {
+		message CompressedValuesContainer {
 			repeated sint32 values = 1;
 		}
 
@@ -69,8 +69,8 @@ message Body {
 			}
 
 			oneof Values {
-				AbsoluteValuesContainer absolute_values_container = 1;
-				DifferentialValuesContainer differential_values_container = 2;
+				UncompressedValuesContainer uncompressed_values_container = 1;
+				CompressedValuesContainer compressed_values_container = 2;
 			}
 			reserved 3 to 6; // reserved for other values types
 
@@ -88,8 +88,8 @@ message Body {
 			}
 
 			oneof Values {
-				AbsoluteValuesContainer absolute_values_container = 1;
-				DifferentialValuesContainer differential_values_container = 2;
+				UncompressedValuesContainer uncompressed_values_container = 1;
+				CompressedValuesContainer compressed_values_container = 2;
 			}
 			reserved 3 to 6; // reserved for other values types
 
@@ -109,8 +109,8 @@ message Body {
 		}
 
 		oneof Timestamps {
-			AbsoluteTimestampsContainer absolute_timestamps_container = 1;
-			DifferentialTimestampsContainer differential_timestamps_container = 2;
+			UncompressedTimestampsContainer uncompressed_timestamps_container = 1;
+			CompressedTimestampsContainer compressed_timestamps_container = 2;
 		}
 
 		oneof Channels {
