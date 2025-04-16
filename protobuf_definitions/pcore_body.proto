@@ -2,7 +2,7 @@
 
 	Created by Steve Merschel 2022.
 
-	Copyright © 2022 PREVENTICUS GmbH
+	Copyright © 2025 PREVENTICUS GmbH
 
 	Redistribution and use in source and binary forms, with or without modification,
 	are permitted provided that the following conditions are met:
@@ -45,8 +45,8 @@ message Body {
 
 		message CompressedTimestampsContainer {
 			uint64 first_unix_timestamp_ms = 1;
-			repeated uint32 outer_sections_differences_ms = 2;
-			repeated uint32 inner_sections_differences_ms = 3;
+			repeated uint32 outer_sections_durations_ms = 2;
+			repeated uint32 inner_sections_durations_ms = 3;
 			repeated uint32 sections_sizes = 4;
 		}
 
@@ -59,7 +59,6 @@ message Body {
 		}
 
 		message Accelerometer {
-
 			enum Type {
 				TYPE_UNSPECIFIED = 0;
 				TYPE_X_COORDINATE = 1;
@@ -67,45 +66,34 @@ message Body {
 				TYPE_Z_COORDINATE = 3;
 				TYPE_EUCLIDEAN_DIFFERENCES_NORM = 4;
 			}
-
-			oneof Values {
-				UncompressedValuesContainer uncompressed_values_container = 1;
-				CompressedValuesContainer compressed_values_container = 2;
-			}
-			reserved 3 to 6; // reserved for other values types
-
-			Type type = 15;
-
+			Type type = 1;
 		}
 
 		message Photoplethysmograph {
-
 			enum Color {
 				COLOR_UNSPECIFIED = 0;
 				COLOR_GREEN = 1;
 				COLOR_RED = 2;
 				COLOR_BLUE = 3;
 			}
+			oneof Light {
+				uint32 wavelength_nm = 1;
+				Color color = 2;
+			}
+		}
 
+		message Channel {
 			oneof Values {
 				UncompressedValuesContainer uncompressed_values_container = 1;
 				CompressedValuesContainer compressed_values_container = 2;
 			}
-			reserved 3 to 6; // reserved for other values types
-
-			oneof Light {
-				uint32 wavelength_nm = 14;
-				Color color = 15;
+			reserved 3 to 5; // reserved for other values types
+			oneof Type {
+				Photoplethysmograph photoplethysmograph = 6;
+				Accelerometer accelerometer = 7;
 			}
-
-		}
-
-		message AccelerometerContainer { // helper container to wrap the repeated field for the oneof field
-			repeated Accelerometer accelerometers = 1;
-		}
-
-		message PhotoplethysmographContainer { // helper container to wrap the repeated field for the oneof field
-			repeated Photoplethysmograph photoplethysmographs = 1;
+			reserved 8 to 15; // reserved for other channel types
+			uint32 significant_digits = 100;
 		}
 
 		oneof Timestamps {
@@ -113,13 +101,7 @@ message Body {
 			CompressedTimestampsContainer compressed_timestamps_container = 2;
 		}
 
-		oneof Channels {
-			AccelerometerContainer accelerometer_container = 3;
-			PhotoplethysmographContainer photoplethysmograph_container = 4;
-		}
-		reserved 5 to 15; // reserved for more sensor channels
-
-		uint32 significant_digits = 100;
+		repeated Channel channel = 3;
 
 	}
 
