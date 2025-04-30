@@ -33,12 +33,115 @@
 
 syntax = "proto3";
 package com.preventicus.pcore;
-import "pcore_body.proto";
-import "pcore_header.proto";
+import "pcore_version.proto";
 option optimize_for = SPEED;
 
 message Data { // This is the outer layer.
-    com.preventicus.pcore.Header header = 1;
-    com.preventicus.pcore.Body body = 2;
-    reserved 3; // Reserved for internal usage.
+
+	/*
+		Metadata
+	*/
+	message Metadata { // The metadata collects all global data 
+		message Device {
+			string name = 1;
+			string manufacturer = 2;
+			string id = 3;
+			com.preventicus.pcore.Version firmware_version = 4;
+		}
+		sint32 timezone_offset_min = 1; // The time zone is set in minutes 
+		com.preventicus.pcore.Version pcore_version = 2; // The version of the used pcore definition
+		Device device = 3; // information about the device
+	}
+
+	Metadata metadata = 1;
+
+	/*
+		Timestamps 
+	*/
+
+	message UncompressedTimestampsContainer {
+		repeated uint64 unix_timestamps_ms = 1;
+	}
+
+	message CompressedTimestampsContainer {
+		uint64 first_unix_timestamp_ms = 1;
+		repeated uint32 outer_sections_durations_ms = 2;
+		repeated uint32 inner_sections_durations_ms = 3;
+		repeated uint32 sections_sizes = 4;
+	}
+
+	oneof Timestamps {
+		UncompressedTimestampsContainer uncompressed_timestamps_container = 2;
+		CompressedTimestampsContainer compressed_timestamps_container = 3;
+	}
+
+	/*
+		Channel
+	*/
+
+	message Channel {
+
+		/*
+			Values 
+		*/
+
+		message UncompressedValuesContainer {
+			repeated uint32 values = 1;
+		}
+
+		message CompressedValuesContainer {
+			repeated sint32 values = 1;
+		}
+
+		oneof Values {
+			UncompressedValuesContainer uncompressed_values_container = 1;
+			CompressedValuesContainer compressed_values_container = 2;
+		}
+
+		reserved 3 to 5; // reserved for other values types
+
+		/*
+			SensorType
+		*/
+
+		message Accelerometer {
+			enum Type {
+				TYPE_UNSPECIFIED = 0;
+				TYPE_X_COORDINATE = 1;
+				TYPE_Y_COORDINATE = 2;
+				TYPE_Z_COORDINATE = 3;
+				TYPE_EUCLIDEAN_DIFFERENCES_NORM = 4;
+			}
+			Type type = 1;
+		}
+
+		message Photoplethysmograph {
+			enum Color {
+				COLOR_UNSPECIFIED = 0;
+				COLOR_GREEN = 1;
+				COLOR_RED = 2;
+				COLOR_BLUE = 3;
+			}
+			oneof Light {
+				uint32 wavelength_nm = 1;
+				Color color = 2;
+			}
+		}
+
+		oneof SensorType {
+			Photoplethysmograph photoplethysmograph = 6;
+			Accelerometer accelerometer = 7;
+		}
+		reserved 8 to 15; // reserved for other sensor types
+
+		/*
+			significant_digits
+		*/
+		uint32 significant_digits = 100;
+		
+	}
+
+	repeated Channel channels = 4;
+
+    reserved 5; // Reserved for internal usage.
 }
