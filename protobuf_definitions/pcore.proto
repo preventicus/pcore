@@ -85,20 +85,19 @@ message Data { // This is the outer layer.
 			Values 
 		*/
 
-		message UncompressedValuesContainer {
-			repeated uint32 values = 1;
-		}
+		repeated uint64 values = 1;
 
-		message CompressedValuesContainer {
-			repeated sint32 values = 1;
-		}
+		/*
+			shift
+		*/
 
-		oneof Values {
-			UncompressedValuesContainer uncompressed_values_container = 1;
-			CompressedValuesContainer compressed_values_container = 2;
-		}
+		uint32 shift = 2;
 
-		reserved 3 to 5; // reserved for other values types
+		/*
+			significant_digits
+		*/
+
+		uint32 significant_digits = 3;
 
 		/*
 			SensorType
@@ -129,19 +128,12 @@ message Data { // This is the outer layer.
 		}
 
 		oneof SensorType {
-			Photoplethysmograph photoplethysmograph = 6;
-			Accelerometer accelerometer = 7;
+			Photoplethysmograph photoplethysmograph = 4;
+			Accelerometer accelerometer = 5;
 		}
-		reserved 8 to 15; // reserved for other sensor types
 
-		/*
-			significant_digits
-		*/
-		uint32 significant_digits = 100;
-		
 	}
 
 	repeated Channel channels = 4;
 
-    reserved 5; // Reserved for internal usage.
 }
