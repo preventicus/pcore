@@ -206,11 +206,11 @@ class CompressedTimestampsContainer {
   +sections_sizes: uint32[]
 }
 
-%% === Channel ===
+%% === Sensor ===
 
-class Channel {
+class Sensor {
   %% oneof type:
-  +sensor_type: Photoplethysmograph | Accelerometer
+  +type: Photoplethysmograph | Accelerometer
   +values: IntValues | DoubleValues
 }
 
@@ -252,6 +252,12 @@ class PhotoplethysmographColor {
   COLOR_BLUE
 }
 
+%% ====== Electrocardiogram ===
+
+class Electrocardiogram {
+    +channel: uint32
+}
+
 %% === Version ===
 
 class Version {
@@ -269,11 +275,12 @@ Metadata --> Version : pcore_version
 
 Data --> CompressedTimestampsContainer
 
-Data --> Channel 
-Channel --> Photoplethysmograph
-Channel --> Accelerometer
-Channel --> IntValues 
-Channel --> DoubleValues 
+Data --> Sensor 
+Sensor --> Photoplethysmograph
+Sensor --> Accelerometer
+Sensor --> Electrocardiogram
+Sensor --> IntValues 
+Sensor --> DoubleValues 
 
 Photoplethysmograph --> PhotoplethysmographColor : color
 Accelerometer --> AccelerometerType : type

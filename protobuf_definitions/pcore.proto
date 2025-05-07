@@ -69,36 +69,32 @@ message Data { // This is the outer layer.
 	CompressedTimestampsContainer compressed_timestamps_container = 2;
 
 	/*
-		Channel
+		Sensor
 	*/
 
-	message Channel {
+	message Sensor {
 
 		/*
 			Values 
 		*/
 
-		message IntValues {
+		message IntValuesContainer  {
 			repeated sint64 values = 1;
 		}
 
-		message DoubleValues {
+		message DoubleValuesContainer  {
 			repeated double values = 1;
 		}
 
 		oneof Values {
-			IntValues intValues = 1;
-			DoubleValues doubleValues = 2;
+			IntValuesContainer int_values_container = 1;
+			DoubleValuesContainer double_values_container = 2;
 		}
 
-		/*
-			significant_digits
-		*/
-
-		uint32 significant_digits = 3;
+		reserved 3 to 5; // reserved for other values container 
 
 		/*
-			SensorType
+			Type
 		*/
 
 		message Accelerometer {
@@ -125,13 +121,20 @@ message Data { // This is the outer layer.
 			}
 		}
 
-		oneof SensorType {
-			Photoplethysmograph photoplethysmograph = 3;
-			Accelerometer accelerometer = 4;
+		message Electrocardiogram {
+			uint32 channel = 1;
 		}
 
+		oneof Type {
+			Photoplethysmograph photoplethysmograph = 6;
+			Accelerometer accelerometer = 7;
+			Electrocardiogram electrocardiogram = 8;
+		}
+
+		reserved 9 to 15; // reserved for other sensor types 
+ 
 	}
 
-	repeated Channel channels = 4;
+	repeated Sensor sensors = 3;
 
 }
