@@ -59,10 +59,6 @@ message Data { // This is the outer layer.
 		Timestamps 
 	*/
 
-	message UncompressedTimestampsContainer {
-		repeated uint64 unix_timestamps_ms = 1;
-	}
-
 	message CompressedTimestampsContainer {
 		uint64 first_unix_timestamp_ms = 1;
 		repeated uint32 outer_sections_durations_ms = 2;
@@ -70,10 +66,7 @@ message Data { // This is the outer layer.
 		repeated uint32 sections_sizes = 4;
 	}
 
-	oneof Timestamps {
-		UncompressedTimestampsContainer uncompressed_timestamps_container = 2;
-		CompressedTimestampsContainer compressed_timestamps_container = 3;
-	}
+	CompressedTimestampsContainer compressed_timestamps_container = 2;
 
 	/*
 		Channel
@@ -85,13 +78,18 @@ message Data { // This is the outer layer.
 			Values 
 		*/
 
-		repeated uint64 values = 1;
+		message IntValues {
+			repeated sint64 values = 1;
+		}
 
-		/*
-			shift
-		*/
+		message DoubleValues {
+			repeated double values = 1;
+		}
 
-		uint32 shift = 2;
+		oneof Values {
+			IntValues intValues = 1;
+			DoubleValues doubleValues = 2;
+		}
 
 		/*
 			significant_digits
@@ -128,8 +126,8 @@ message Data { // This is the outer layer.
 		}
 
 		oneof SensorType {
-			Photoplethysmograph photoplethysmograph = 4;
-			Accelerometer accelerometer = 5;
+			Photoplethysmograph photoplethysmograph = 3;
+			Accelerometer accelerometer = 4;
 		}
 
 	}

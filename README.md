@@ -170,3 +170,111 @@
 		}]
 	}]
 
+```mermaid
+classDiagram
+
+%% === Hauptstruktur ===
+
+class Data {
+  +metadata: Metadata
+  %% oneof timestamps:
+  +timestamps: CompressedTimestampsContainer
+  +sensors: Sensor[]
+}
+
+%% === Metadata ===
+
+class Metadata {
+  +timezone_offset_min: sint32
+  +pcore_version: Version
+  +device: Device
+}
+
+class Device {
+  +name: string
+  +manufacturer: string
+  +id: string
+  +firmware_version: Version
+}
+
+%% === Timestamps ===
+
+class CompressedTimestampsContainer {
+  +first_unix_timestamp_ms: uint64
+  +outer_sections_durations_ms: uint32[]
+  +inner_sections_durations_ms: uint32[]
+  +sections_sizes: uint32[]
+}
+
+%% === Channel ===
+
+class Channel {
+  %% oneof type:
+  +sensor_type: Photoplethysmograph | Accelerometer
+  +values: IntValues | DoubleValues
+}
+
+class IntValues {
+    values: sint64[]
+}
+
+class DoubleValues {
+    values: double[]
+}
+
+%% === Accelerometer ===
+
+class Accelerometer {
+  +type: AccelerometerType
+}
+
+class AccelerometerType {
+  <<enumeration>>
+  TYPE_UNSPECIFIED
+  TYPE_X_COORDINATE
+  TYPE_Y_COORDINATE
+  TYPE_Z_COORDINATE
+  TYPE_EUCLIDEAN_DIFFERENCES_NORM
+}
+
+%% === Photoplethysmograph ===
+
+class Photoplethysmograph {
+  %% oneof light:
+  +light: uint32 | PhotoplethysmographColor
+}
+
+class PhotoplethysmographColor {
+  <<enumeration>>
+  COLOR_UNSPECIFIED
+  COLOR_GREEN
+  COLOR_RED
+  COLOR_BLUE
+}
+
+%% === Version ===
+
+class Version {
+  +major: uint32
+  +minor: uint32
+  +patch: uint32
+}
+
+%% === Beziehungen ===
+
+Data --> Metadata
+Metadata --> Device
+Device --> Version : firmware_version
+Metadata --> Version : pcore_version
+
+Data --> CompressedTimestampsContainer
+
+Data --> Channel 
+Channel --> Photoplethysmograph
+Channel --> Accelerometer
+Channel --> IntValues 
+Channel --> DoubleValues 
+
+Photoplethysmograph --> PhotoplethysmographColor : color
+Accelerometer --> AccelerometerType : type
+```
