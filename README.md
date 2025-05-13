@@ -1,9 +1,7 @@
 # pcore
 
-
-	Documentation:
-	==============
-
+## Documentation:
+	
     We recommend naming the resulting data files *.pcore (PreventicusCore).
 
 	The basic ideas in the pcore format are 
@@ -11,32 +9,32 @@
 		1) get rid of timestamps as good as possible 
 		2) to store differences instead of absolute values of sensor data.
 
-	Currently PPG sensors and ACC sensors are supported. The PPG data is stored in the PpgSensor message. The ACC data in the
-	AccSensor message. The difference between the AccSensor and the PpgSensor is only in some meta information. The respective
-	raw data are stored in the same way. Channels and Blocks are defined for this purpose. Each sensor has several channels. 
-	The difference between the sensor and the channels is, that each data stream in a channel is based in the same timestamps. 
-	A block is defined as a summary of data with equal time differnces. So, a block is completed when the time difference 
-	between 2 timestamps is not equal to the time difference of the timestamps before. The pseudocode findBlocks describes how 
-	the blocks can be found. See also th example below In each sensor the message timestamp is stored.  The start of the 
-	measurement with this sensor is stored in unix_0 as unix timestamp in milliseconds. For each block the existing time 
-	difference is stored in this block in d_unix. Also for each block the time differnce to its predecessor is saved in 
-	d_unix_0. The pseudocode cutUnixInBlocks describes how the time data can be calculated. For each block, the data values 
-	are stored as differences. Where the first data value is defined as a difference to 0. See the pseudocode 
-	cutValuesInBlocks and createValueBlock. 
+	Currently, data from Photoplethysmograph (PPG), Accelerometer (ACC), and Electrocardiogram (ECG) sensors are supported. Each sensor’s data is stored in a uniform Sensor structure, which encapsulates sensor-specific metadata and a sequence of measurement values. Depending on the sensor type, these values are stored either as integers (IntValues) or floating-point numbers (DoubleValues).
+
+	Each sensor provides time-synchronized measurements across one or multiple channels. The underlying timestamps for all channels of a sensor are shared and compressed using a structure called CompressedTimestampsContainer. This container represents the measurement timeline by dividing it into sections of constant time intervals. The compressed representation stores the initial timestamp, per-section time deltas, and the number of data points per section.
+
+	For data compression purposes, measurement values are stored in block form:
+		•	Integer values are serialized as cumulative differences (deltas), starting from zero.
+		•	Floating-point values are stored as-is, without compression.
+
+	The serialized timestamp and value blocks can later be reconstructed using the provided deserialization logic. This ensures both space-efficient storage and accurate recovery of the original measurement series.
+
+	The structure of the serialization format is defined in the Data message. It includes metadata, the compressed timestamps, and a list of sensor messages. For an overview of the involved data structures and their relationships, refer to the class diagram below.
 
 	Example:
 	--------
+	(each | marks a timestamp, the difference between two | with no space is for this example defined 40 milliseconds, so 1 space is 80 milliseconds)
 
-	   Block 1     Block 2   Block 3   Block 4
-	  ||||||||||  ||||||||  | | | | |   |||             (each | marks a timestamp, the difference between two | with no space 
-	──↑───────────↑─────────↑─↑─────────────────>        is for this example defined 40 milliseconds, so 1 space is 80 milliseconds)
+	  Sequence 1   Sequence 2   Sequence 3   Sequence 4
+	  ||||||||||   ||||||||     | | | | |      |||   
+	──↑────────────↑────────────↑─↑────────────────────>        
 	  a           b         c d                time
 
-	  a: unix_0 (begin measurement)
-	  c to d: d_unix (time difference in each block)
-	  a to a: d_unix_0[0] (allways 0)
-	  a to b: d_unix_0[1] (time differences to predecessor start of block )
-	  b to c: d_unix_0[2] (and so on)
+	  a: first_unix_timestamp_ms (begin measurement)
+	  c to d: inner_sections_durations_ms (time difference in each block)
+	  a to a: outer_sections_durations_ms[0] (allways 0)
+	  a to b: outer_sections_durations_ms[1] (time differences to predecessor start of block )
+	  b to c: outer_sections_durations_ms[2] (and so on)
 
 
 	unix,         ppg
@@ -69,24 +67,16 @@
 
 	leads to:
 
-	ppgSensors: [{
-		timestamp {
-			unix_0: 1675732789987
-			d_unix_0: [0, 480, 400, 480]
-			d_unix: [40, 40, 80, 40]
-		}
-		channels: [{
-			blocks: [{
-				d_value: [38763, 8, 9, 13, -9, -4, 0, 3, 7, -8]
-			},
-			{
-				d_value: [46321, 6, -9, -2, -3, 0, 0, 23]
-			},
-			{
-				d_value: [58772, 2, 1, 1, -3]
-			},
-			{
-				d_value: [19982, 0, -4]
+	Data: [{
+		CompressedTimestampsContainer: {
+			first_unix_timestamp_ms: 1675732789987,
+			outer_sections_durations_ms: [0, 480, 400, 480],
+			inner_sections_durations_ms: [40, 40, 80, 40],
+			sections_sizes: [10, 8, 5, 3]
+		},
+		Sensors: [{
+			IntValuesContainer: [{
+				values: [8, 9, 13, -9, -4, 0, 3, 7, -8, 7539, 6, -9, -2, -3, 0, 0, 23, 12436, 2, 1, 1, -3, -38791, 0, -4]
 			}]
 		}]
 	}]
