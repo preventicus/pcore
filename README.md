@@ -24,85 +24,6 @@
 	are stored as differences. Where the first data value is defined as a difference to 0. See the pseudocode 
 	cutValuesInBlocks and createValueBlock. 
 
-	Pseudocode:
-	-----------
-
-	findBlocks
-	 * in: unix is an array of timestamps
-	 * out: array of indices
-
-        set referenceTimeDifference to 0
-        set isNewBlock to true 
-        create blocksIdxs as empty array
-
-		add 0 to blocksIdxs
-
-		loop i from 1 to lenght of unix 
-			if isNewBlock
-				set referenceTimeDifference to unix[i] - unix[i-1]
-				set isNewBlock to false
-
-			if unix[i] - unix[i-1] != referenceTimeDifference
-				add i to blocksIdxs
-				set isNewBlock to true
-
-        return blocksIdxs
-
-	cutUnixInBlocks
-	 * in: unix is an array of timestamps,
-	       blocksIdx is an array of indices describing the begin of a block
-	 * out: dUnix
-	        dUnix0
-
-        create dUnix as empty array
-        create dUnix0 as empty array
-
-		add 0 to dUnix0
-		add unix[1]-unix[0] to dUnix
-
-        loop i from 1 to length of blocksIdx 
-			set prevIdx to blocksIdx[i-1]
-			set idx to blocksIdx[i]
-
-			add unix[idx+1] - unix[idx] to dUnix
-			add unix[idx] - unix[prevIdx] to dUnix0
-
-        return dUnix, dUnix0
-        
-	cutValuesInBlocks
-	 * in: values is the array of the data values i.e. ppg
-	       blocksIdx is an array of indices describing the begin of a block
-	 * out: array of blocks
-
-	 	set n to length of blocksIdx
-		create blocks as empty array
-
-		loop i from 0 to n - 1
-			add result of createValueBlock(blocksIdx[i], blocksIdx[i+1] - 1, values) to blocks
-		
-		set m to length of values
-		add result of createValueBlock(blocksIdx[n-1], m - 1, values) to blocks
-
-        return blocks
-
-    createValueBlock
-	 * in: fromIdx is the indice of the start of the block,
-	       toIdx is the indice of the end of the block,
-		   values is the array of the data values i.e. ppg
-	 * out: the block structure 
-
-	 	create dValue as empty array
-
-		add values[fromIdx] to dValue // difference to 0
-        
-		loop i from fromIdx + 1 to toIdx 
-			add values[i] - values[i-1] to dValue
-
-		create block as block structure
-		add dValue to block 
-
-        return block
-
 	Example:
 	--------
 
@@ -170,6 +91,8 @@
 		}]
 	}]
 
+## Protobuf Struct
+
 ```mermaid
 classDiagram
 
@@ -210,7 +133,7 @@ class CompressedTimestampsContainer {
 
 class Sensor {
   %% oneof type:
-  +type: Photoplethysmograph | Accelerometer
+  +type: Photoplethysmograph | Accelerometer | Electrocardiogram
   +values: IntValues | DoubleValues
 }
 
@@ -285,3 +208,173 @@ Sensor --> DoubleValues
 Photoplethysmograph --> PhotoplethysmographColor : color
 Accelerometer --> AccelerometerType : type
 ```
+
+## Serialize
+
+### Description of Timestamp Serialization
+
+Given a sequence of timestamp integers $T = (t_0, t_1, \ldots, t_n \in \mathbb{N})$
+
+Define **sections** by grouping adjacent timestamps with constant deltas:
+$$
+\delta_i = t_{i} - t_{i-1}, \quad \text{for } i = 1, \dots, n
+$$
+Each section $ S_j \subseteq T $ satisfies:
+$$
+\delta_{k} = \text{const} \quad \forall\, t_k, t_{k+1} \in S_j
+$$
+
+Let $ s_0 = 0 $ and define section boundaries as:
+$$
+\text{SectionIdxs} = [s_0, s_1, \dots, s_m], \quad \text{with } t_{s_{j+1}} - t_{s_j} \neq \delta_{s_j+1}
+$$
+
+One possible algorithm to do that is: 
+
+<pre>
+Algorithm: FindSectionIndices
+
+Input: 
+  Timestamps = [t₀, t₁, ..., tₙ]  // ordered list of Unix timestamps
+
+Output:
+  SectionIdxs = [s₀, s₁, ..., sₘ] // indices where new sections start
+
+Procedure:
+  If Timestamps is empty:
+    return empty list
+
+  Initialize SectionIdxs ← [0]
+  Set isNewSection ← true
+
+  For i from 1 to length(Timestamps) - 1:
+    duration ← Timestamps[i] - Timestamps[i - 1]
+
+    If isNewSection:
+      referenceDuration ← duration
+      isNewSection ← false
+
+    If duration ≠ referenceDuration:
+      Append i to SectionIdxs
+      isNewSection ← true
+
+  return SectionIdxs
+</pre>
+
+1. Case: length(SectionIdxs) == 0
+
+- $ \text{first\_unix\_timestamp\_ms} = 0 $
+- $ \text{outer\_section\_durations\_ms} = [] $
+- $ \text{inner\_section\_durations\_ms} = [] $
+- $ \text{section\_sizes} = [] $
+
+2. Case: length(SectionIdxs) = 1
+	1. Case: length($T$) = 1:
+		- $ \text{first\_unix\_timestamp\_ms} = t_0 $
+		- $ \text{outer\_section\_durations\_ms}_0 = 0 $
+		- $ \text{inner\_section\_durations\_ms}_0 = 0 $
+		- $ \text{section\_sizes}_0 = 1 $
+	2. Case: length($T$) > 1:
+		- $ \text{first\_unix\_timestamp\_ms} = t_0 $
+		- $ \text{outer\_section\_durations\_ms}_0 = 0 $
+		- $ \text{inner\_section\_durations\_ms}_0 = t_{s_1} - t_{s_0} $
+		- $ \text{section\_sizes}_0 = \text{length}(T) $
+
+3. Case: length(SectionIdxs) > 1
+	- $ \text{first\_unix\_timestamp\_ms} = t_0 $
+	* First $j = 0$
+		- $ \text{outer\_section\_durations\_ms}_0 = 0 $
+		- $ \text{inner\_section\_durations\_ms}_0 = t_{s_1} - t_{s_0} $
+		- $ \text{section\_sizes}_0 = s_{1} $
+	* Middel $j = 1, 2, \ldots, \text{length}(SectionIdxs) - 2$
+		- $ \text{outer\_section\_durations\_ms}_j = t_{s_{j}} - t_{s_{j-1}} $
+		- $ \text{inner\_section\_durations\_ms}_j = t_{s_j+1} - t_{s_j} $
+		- $ \text{section\_sizes}_j = s_{j+1} - s_j $
+	* Last $m = \text{length}(SectionIdxs)$
+		1. Case: $\text{length}(T) - 1 = s_{m-1}$
+			- $ \text{outer\_section\_durations\_ms}_{m-1} = t_{s_{m-1}} - t_{s_{m-2}} $
+			- $ \text{inner\_section\_durations\_ms}_{m-1} = 0 $
+			- $ \text{section\_sizes}_{m-1} = \text{length}(T) - s_{m-1} $ 
+		2. Case: $\text{length}(T) - 1 ≠ s_{m-1}$
+			- $ \text{outer\_section\_durations\_ms}_{m-1} = t_{s_{m-1}} - t_{s_{m-2}} $
+			- $ \text{inner\_section\_durations\_ms}_{m-1} = t_{s_{m-1}+1} -  t_{s_{m-1}} $
+			- $ \text{section\_sizes}_{m-1} = \text{length}(T) - s_{m-1} $ 
+	
+
+
+
+
+
+### Description of Integer Value Serialization
+
+Given a sequence of integers $(v_0, v_1, \ldots, v_n \in \mathbb{Z})$, stored in $v$.
+
+The serialization proceeds as follows:
+
+1. If $v$ is empty nothing is serialized.
+2. The first value $ v_0 $ is stored directly.
+3. Subsequently, the difference to the previous value is stored for each element:
+
+$$d_i = v_i - v_{i-1} \quad \text{for } i = 1,2, \ldots, n \quad \text{with } s_0 = v_0$$
+
+### Description of Double Value Serialization
+
+Given a sequence of real-valued measurements $(v_0, v_1, \ldots, v_n \in \mathbb{R})$, stored in $v$.
+
+The serialization proceeds as follows:
+
+1. If $v$ is empty nothing is serialized.
+2. Each value $v_i$ is directly stored:
+
+$$
+\hat{v}_i = v_i \quad \text{for } i = 0, 1, \ldots, n
+$$
+
+
+## Deserialize
+
+### Deserialization of Compressed Timestamps
+
+Given:
+- An initial timestamp $ t_0 \in \mathbb{N} $
+- A list of outer durations $ D^{\text{outer}} = (d_0^{\text{outer}}, \ldots, d_k^{\text{outer}}) \in \mathbb{N}^{k+1} $
+- A list of inner durations $ D^{\text{inner}} = (d_0^{\text{inner}}, \ldots, d_k^{\text{inner}}) \in \mathbb{N}^{k+1} $
+- A list of section sizes $ S = (s_0, s_1, \ldots, s_k) \in \mathbb{N}^{k+1} $
+
+Each section $ i $ begins at timestamp:
+
+$$
+t_i = t_0 + \sum_{j=0}^{i} d_j^{\text{outer}}
+$$
+
+The timestamps in section $ i $ are then computed as:
+
+$$
+T_i = \left( t_i + n \cdot d_i^{\text{inner}} \right) \quad \text{for } n = 0, 1, \ldots, s_i - 1
+$$
+
+The full sequence is reconstructed as the concatenation:
+
+$$
+T = T_0 \cup T_1 \cup \cdots \cup T_k
+$$
+
+### Deserialization of Integer Values
+
+Given a serialized sequence $s = ( d_0, d_1, \ldots, d_n \in \mathbb{Z})$ of differences $d$
+
+The original values $(v_0, v_1, \ldots, v_n )$ are reconstructed by cumulative summation:
+
+$$
+v_i = \sum_{k=0}^{i} d_k \quad \text{for } i = 0, 1, \ldots, n
+$$
+
+### Deserialization of Double Values
+
+Given a serialized sequence $s = (\hat{v}_0, \hat{v}_1, \ldots, \hat{v}_n \in \mathbb{R} )$
+
+The deserialized sequence is reconstructed by direct copy:
+
+$$
+v_i = \hat{v}_i \quad \text{for } i = 0, 1, \ldots, n
+$$

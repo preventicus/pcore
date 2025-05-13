@@ -33,8 +33,13 @@
 
 syntax = "proto3";
 package com.preventicus.pcore;
-import "pcore_version.proto";
 option optimize_for = SPEED;
+
+message Version {
+	uint32 major = 1;
+	uint32 minor = 2;
+	uint32 patch = 3;
+}
 
 message Data { // This is the outer layer.
 
@@ -46,10 +51,10 @@ message Data { // This is the outer layer.
 			string name = 1;
 			string manufacturer = 2;
 			string id = 3;
-			com.preventicus.pcore.Version firmware_version = 4;
+			Version firmware_version = 4;
 		}
 		sint32 timezone_offset_min = 1; // The time zone is set in minutes 
-		com.preventicus.pcore.Version pcore_version = 2; // The version of the used pcore definition
+		Version pcore_version = 2; // The version of the used pcore definition
 		Device device = 3; // information about the device
 	}
 
