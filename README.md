@@ -9,26 +9,42 @@
 		1) get rid of timestamps as good as possible 
 		2) to store differences instead of absolute values of sensor data.
 
-	Currently, data from Photoplethysmograph (PPG), Accelerometer (ACC), and Electrocardiogram (ECG) sensors are supported. Each sensor’s data is stored in a uniform Sensor structure, which encapsulates sensor-specific metadata and a sequence of measurement values. Depending on the sensor type, these values are stored either as integers (IntValues) or floating-point numbers (DoubleValues).
+	Currently, data from Photoplethysmograph (PPG), Accelerometer (ACC), 
+	and Electrocardiogram (ECG) sensors are supported. Each sensor’s data 
+	is stored in a uniform Sensor structure, which encapsulates 
+	sensor-specific metadata and a sequence of measurement values. 
+	Depending on the sensor type, these values are stored either as 
+	integers (IntValues) or floating-point numbers (DoubleValues).
 
-	Each sensor provides time-synchronized measurements across one or multiple channels. The underlying timestamps for all channels of a sensor are shared and compressed using a structure called CompressedTimestampsContainer. This container represents the measurement timeline by dividing it into sections of constant time intervals. The compressed representation stores the initial timestamp, per-section time deltas, and the number of data points per section.
+	Each sensor provides time-synchronized measurements across one or 
+	multiple channels. The underlying timestamps for all channels of a 
+	sensor are shared and compressed using a structure called CompressedTimestampsContainer. 
+	This container represents the measurement timeline by dividing it into 
+	sections of constant time intervals. The compressed representation stores 
+	the initial timestamp, per-section time deltas, and the number of data points per section.
 
 	For data compression purposes, measurement values are stored in block form:
-		•	Integer values are serialized as cumulative differences (deltas), starting from zero.
+		•	Integer values are compressed as cumulative differences (deltas), starting from zero.
 		•	Floating-point values are stored as-is, without compression.
 
-	The serialized timestamp and value blocks can later be reconstructed using the provided deserialization logic. This ensures both space-efficient storage and accurate recovery of the original measurement series.
+	The compressed timestamp and values can later be reconstructed using the 
+	provided decompression logic. This ensures both space-efficient storage and 
+	accurate recovery of the original measurement series.
 
-	The structure of the serialization format is defined in the Data message. It includes metadata, the compressed timestamps, and a list of sensor messages. For an overview of the involved data structures and their relationships, refer to the class diagram below.
+	The structure of the compressed format is defined in the Data message. 
+	It includes metadata, the compressed timestamps, and a list of sensor messages. 
+	For an overview of the involved data structures and their relationships, refer to 
+	the class diagram below.
 
 	Example:
 	--------
-	(each | marks a timestamp, the difference between two | with no space is for this example defined 40 milliseconds, so 1 space is 80 milliseconds)
+	(each | marks a timestamp, the difference between two | with no space is for this 
+	example defined 40 milliseconds, so 1 space is 80 milliseconds)
 
 	  Sequence 1   Sequence 2   Sequence 3   Sequence 4
 	  ||||||||||   ||||||||     | | | | |      |||   
 	──↑────────────↑────────────↑─↑────────────────────>        
-	  a           b         c d                time
+	  a            b            c d                 time
 
 	  a: first_unix_timestamp_ms (begin measurement)
 	  c to d: inner_sections_durations_ms (time difference in each block)
@@ -199,172 +215,192 @@ Photoplethysmograph --> PhotoplethysmographColor : color
 Accelerometer --> AccelerometerType : type
 ```
 
-## Serialize
+## Compress
 
-### Description of Timestamp Serialization
+### Timestamp Compress
 
-Given a sequence of timestamp integers $T = (t_0, t_1, \ldots, t_n \in \mathbb{N})$
-
-Define **sections** by grouping adjacent timestamps with constant deltas:
-$$
-\delta_i = t_{i} - t_{i-1}, \quad \text{for } i = 1, \dots, n
-$$
-Each section $ S_j \subseteq T $ satisfies:
-$$
-\delta_{k} = \text{const} \quad \forall\, t_k, t_{k+1} \in S_j
-$$
-
-Let $ s_0 = 0 $ and define section boundaries as:
-$$
-\text{SectionIdxs} = [s_0, s_1, \dots, s_m], \quad \text{with } t_{s_{j+1}} - t_{s_j} \neq \delta_{s_j+1}
-$$
-
-One possible algorithm to do that is: 
-
+**Algorithm: FindSectionIndices**
 <pre>
-Algorithm: FindSectionIndices
+Name: 
+  FindSectionIndices
 
-Input: 
-  Timestamps = [t₀, t₁, ..., tₙ]  // ordered list of Unix timestamps
+Input:
+  unixTimestampsMs = [t₀, t₁, ..., tₙ]  // ordered list of Unix timestamps
 
 Output:
-  SectionIdxs = [s₀, s₁, ..., sₘ] // indices where new sections start
+  SectionIdxs = [s₀, s₁, ..., sₘ] // indices in the Timestamps array where new sections start
 
 Procedure:
-  If Timestamps is empty:
-    return empty list
+  If unixTimestampsMs is empty:
+    Return
 
-  Initialize SectionIdxs ← [0]
-  Set isNewSection ← true
+  Append 0 to SectionIdxs
+  Set isNewSection ← TRUE
 
-  For i from 1 to length(Timestamps) - 1:
-    duration ← Timestamps[i] - Timestamps[i - 1]
+  For i from 1 to length(unixTimestampsMs) - 1:
+    Set duration ← unixTimestampsMs[i] - unixTimestampsMs[i - 1]
 
     If isNewSection:
-      referenceDuration ← duration
-      isNewSection ← false
+      Set referenceDuration ← duration
+      Set isNewSection ← FALSE
 
     If duration ≠ referenceDuration:
       Append i to SectionIdxs
-      isNewSection ← true
+      Set isNewSection ← TRUE
 
-  return SectionIdxs
+  Return SectionIdxs
 </pre>
 
-1. Case: length(SectionIdxs) == 0
+<pre>
+Name: 
+  CompressTimestamp
 
-- $ \text{first\_unix\_timestamp\_ms} = 0 $
-- $ \text{outer\_section\_durations\_ms} = [] $
-- $ \text{inner\_section\_durations\_ms} = [] $
-- $ \text{section\_sizes} = [] $
+Input:
+  unixTimestampsMs
 
-2. Case: length(SectionIdxs) = 1
-	1. Case: length($T$) = 1:
-		- $ \text{first\_unix\_timestamp\_ms} = t_0 $
-		- $ \text{outer\_section\_durations\_ms}_0 = 0 $
-		- $ \text{inner\_section\_durations\_ms}_0 = 0 $
-		- $ \text{section\_sizes}_0 = 1 $
-	2. Case: length($T$) > 1:
-		- $ \text{first\_unix\_timestamp\_ms} = t_0 $
-		- $ \text{outer\_section\_durations\_ms}_0 = 0 $
-		- $ \text{inner\_section\_durations\_ms}_0 = t_{s_1} - t_{s_0} $
-		- $ \text{section\_sizes}_0 = \text{length}(T) $
+Output:
+  firstUnixTimestampMs
+  innerSectionsDurationsMs
+  outerSectionsDurationsMs
+  sectionsSizes
 
-3. Case: length(SectionIdxs) > 1
-	- $ \text{first\_unix\_timestamp\_ms} = t_0 $
-	* First $j = 0$
-		- $ \text{outer\_section\_durations\_ms}_0 = 0 $
-		- $ \text{inner\_section\_durations\_ms}_0 = t_{s_1} - t_{s_0} $
-		- $ \text{section\_sizes}_0 = s_{1} $
-	* Middel $j = 1, 2, \ldots, \text{length}(SectionIdxs) - 2$
-		- $ \text{outer\_section\_durations\_ms}_j = t_{s_{j}} - t_{s_{j-1}} $
-		- $ \text{inner\_section\_durations\_ms}_j = t_{s_j+1} - t_{s_j} $
-		- $ \text{section\_sizes}_j = s_{j+1} - s_j $
-	* Last $m = \text{length}(SectionIdxs)$
-		1. Case: $\text{length}(T) - 1 = s_{m-1}$
-			- $ \text{outer\_section\_durations\_ms}_{m-1} = t_{s_{m-1}} - t_{s_{m-2}} $
-			- $ \text{inner\_section\_durations\_ms}_{m-1} = 0 $
-			- $ \text{section\_sizes}_{m-1} = \text{length}(T) - s_{m-1} $ 
-		2. Case: $\text{length}(T) - 1 ≠ s_{m-1}$
-			- $ \text{outer\_section\_durations\_ms}_{m-1} = t_{s_{m-1}} - t_{s_{m-2}} $
-			- $ \text{inner\_section\_durations\_ms}_{m-1} = t_{s_{m-1}+1} -  t_{s_{m-1}} $
-			- $ \text{section\_sizes}_{m-1} = \text{length}(T) - s_{m-1} $ 
-	
+Procedure:
+  Set sectionIdxs ← FindSectionIndices(unixTimestampsMs)
+  Set numberOfSections ← length(sectionIdxs)
 
+  If numberOfSections == 0
+    Return
 
+  Set sizeUnixTimestamps ← length(unixTimestampsMs)
+  Set firstUnixTimestampMs ← unixTimestampsMs[0]
 
+  If numberOfSections == 1
+    If sizeUnixTimestamps > 1
+	  Append unixTimestampsMs[1] - firstUnixTimestampMs to innerSectionsDurationsMs
+    Else
+	  Append 0 to innerSectionsDurationsMs
+    Append 0 to outerSectionsDurationsMs
+    Append sizeUnixTimestamps to sectionsSizes
+    Return
 
+  Append 0 to outerSectionsDurationsMs
+  Append unixTimestampsMs[1] - firstUnixTimestampMs to innerSectionsDurationsMs
+  Append sectionIdxs[1] to sectionsSizes
 
-### Description of Integer Value Serialization
+  For i from 1 to numberOfSections - 2
+    Set previousSectionIndex ← sectionIdxs[i - 1]
+    Set currentSectionIndex ← sectionIdxs[i]
+    Set nextSectionIndex ← sectionIdxs[i + 1]
+    Append unixTimestampsMs[currentSectionIndex + 1] - unixTimestampsMs[currentSectionIndex] to innerSectionsDurationsMs
+    Append unixTimestampsMs[currentSectionIndex] - unixTimestampsMs[previousSectionIndex] to outerSectionsDurationsMs
+    Append nextSectionIndex - currentSectionIndex to sectionsSizes
 
-Given a sequence of integers $(v_0, v_1, \ldots, v_n \in \mathbb{Z})$, stored in $v$.
+  Set lastSectionIndex ← sectionIdxs[numberOfSections - 1]
+  Append unixTimestampsMs[lastSectionIndex] - unixTimestampsMs[sectionIdxs[numberOfSections - 2]] to outerSectionsDurationsMs
+  If sizeUnixTimestamps - 1 == lastSectionIndex:
+    Append 0 to innerSectionsDurationsMs 
+  Else
+    Append unixTimestampsMs[lastSectionIndex + 1] - unixTimestampsMs[lastSectionIndex] to innerSectionsDurationsMs
+  Append sizeUnixTimestamps - lastSectionIndex to sectionsSizes
+</pre>
 
-The serialization proceeds as follows:
+### Compress Integer Value
+<pre>
+Name:
+  CompressIntergerValues
 
-1. If $v$ is empty nothing is serialized.
-2. The first value $ v_0 $ is stored directly.
-3. Subsequently, the difference to the previous value is stored for each element:
+Input:
+  values // list of integers (IntValues.values)
 
-$$d_i = v_i - v_{i-1} \quad \text{for } i = 1,2, \ldots, n \quad \text{with } s_0 = v_0$$
+Output:
+  compressValues
 
-### Description of Double Value Serialization
+Procedure:
+  If values is empty:
+    Return
 
-Given a sequence of real-valued measurements $(v_0, v_1, \ldots, v_n \in \mathbb{R})$, stored in $v$.
+  Append values[0] to compressValues
+  For i from 1 to length(values) - 1:
+    Append values[i] - values[i - 1] to compressValues
+</pre>
+### Compress Double Value
+<pre>
+Name:
+  CompressDoupleValues
 
-The serialization proceeds as follows:
+Input:
+  values // list of doubles (DoubleValues.values)
 
-1. If $v$ is empty nothing is serialized.
-2. Each value $v_i$ is directly stored:
+Output:
+  compressedValues
 
-$$
-\hat{v}_i = v_i \quad \text{for } i = 0, 1, \ldots, n
-$$
+Procedure:
+  If values is empty:
+    Return
 
+  For each value in values:
+    Append value to compressedValues
+</pre>
 
-## Deserialize
+## Decompress
 
-### Deserialization of Compressed Timestamps
+### Decompress Compressed Timestamp
+<pre>
+Name:
+  DecompressTimestamps
 
-Given:
-- An initial timestamp $ t_0 \in \mathbb{N} $
-- A list of outer durations $ D^{\text{outer}} = (d_0^{\text{outer}}, \ldots, d_k^{\text{outer}}) \in \mathbb{N}^{k+1} $
-- A list of inner durations $ D^{\text{inner}} = (d_0^{\text{inner}}, \ldots, d_k^{\text{inner}}) \in \mathbb{N}^{k+1} $
-- A list of section sizes $ S = (s_0, s_1, \ldots, s_k) \in \mathbb{N}^{k+1} $
+Input:
+  firstUnixTimestampMs
+  outerSectionsDurationsMs
+  innerSectionsDurationsMs
+  sectionsSizes
 
-Each section $ i $ begins at timestamp:
+Output:
+  unixTimestampsMs
 
-$$
-t_i = t_0 + \sum_{j=0}^{i} d_j^{\text{outer}}
-$$
+Procedure:
+  Set currentTimestampMs ← firstUnixTimestampMs
+  For i from 0 to length(sectionsSizes) - 1:
+    Set currentTimestampMs ← currentTimestampMs + outerSectionsDurationsMs[i]
+    For j from 0 to sectionsSizes[i] - 1:
+      Append currentTimestampMs + j * innerSectionsDurationsMs[i] to unixTimestampsMs
+</pre>
 
-The timestamps in section $ i $ are then computed as:
+### Decompress Integer Value
+<pre>
+Name:
+  DecompressIntegerValue
 
-$$
-T_i = \left( t_i + n \cdot d_i^{\text{inner}} \right) \quad \text{for } n = 0, 1, \ldots, s_i - 1
-$$
+Input:
+  compressedValues // list of differences (IntValues)
 
-The full sequence is reconstructed as the concatenation:
+Output:
+  values // list of integers
 
-$$
-T = T_0 \cup T_1 \cup \cdots \cup T_k
-$$
+Procedure:
+  If compressedValues is empty
+    Return []
 
-### Deserialization of Integer Values
+  Set cumulativeSum ← 0
+  For each difference in compressedValues
+	Set cumulativeSum ← cumulativeSum + difference
+    Append cumulativeSum to values
 
-Given a serialized sequence $s = ( d_0, d_1, \ldots, d_n \in \mathbb{Z})$ of differences $d$
+  Return values
+</pre>
 
-The original values $(v_0, v_1, \ldots, v_n )$ are reconstructed by cumulative summation:
+### Decompress Double Value
+<pre>
+Name:
+  DecompressDoubleValue
 
-$$
-v_i = \sum_{k=0}^{i} d_k \quad \text{for } i = 0, 1, \ldots, n
-$$
+Input:
+  compressedValues // list of doubles (DoubleValues)
 
-### Deserialization of Double Values
+Output:
+  values // list of doubles
 
-Given a serialized sequence $s = (\hat{v}_0, \hat{v}_1, \ldots, \hat{v}_n \in \mathbb{R} )$
-
-The deserialized sequence is reconstructed by direct copy:
-
-$$
-v_i = \hat{v}_i \quad \text{for } i = 0, 1, \ldots, n
-$$
+Procedure:
+  For each value in compressedValues
+    Append value to values
+</pre>
