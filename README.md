@@ -6,8 +6,8 @@
 
 	The basic ideas in the pcore format are 
 
-		1) get rid of timestamps as good as possible 
-		2) to store differences instead of absolute values of sensor data.
+	 1) get rid of timestamps as good as possible 
+	 2) to store differences instead of absolute values of sensor data.
 
 	Currently, data from Photoplethysmograph (PPG), Accelerometer (ACC), 
 	and Electrocardiogram (ECG) sensors are supported. Each sensor’s data 
@@ -21,11 +21,12 @@
 	sensor are shared and compressed using a structure called CompressedTimestampsContainer. 
 	This container represents the measurement timeline by dividing it into 
 	sections of constant time intervals. The compressed representation stores 
-	the initial timestamp, per-section time deltas, and the number of data points per section.
+	the initial timestamp, time deltas within a section, the time deltas between the 
+	sections, and the number of data points per section.
 
-	For data compression purposes, measurement values are stored in block form:
-		•	Integer values are compressed as cumulative differences (deltas), starting from zero.
-		•	Floating-point values are stored as-is, without compression.
+	For data compression purposes, measurement values are stored as follow:
+	 • Integer values are compressed as cumulative differences (deltas), starting from zero.
+	 • Floating-point values are stored as-is, without compression.
 
 	The compressed timestamp and values can later be reconstructed using the 
 	provided decompression logic. This ensures both space-efficient storage and 
@@ -47,14 +48,14 @@
 	  a            b            c d                 time
 
 	  a: first_unix_timestamp_ms (begin measurement)
-	  c to d: inner_sections_durations_ms (time difference in each block)
+	  c to d: inner_sections_durations_ms (time difference in each section)
 	  a to a: outer_sections_durations_ms[0] (allways 0)
-	  a to b: outer_sections_durations_ms[1] (time differences to predecessor start of block )
+	  a to b: outer_sections_durations_ms[1] (time differences to predecessor start of section)
 	  b to c: outer_sections_durations_ms[2] (and so on)
 
 
 	unix,         ppg
-	1675732789987,38763 <- Begin Block 1
+	1675732789987,38763 <- Begin Section 1
 	1675732790027,38771
 	1675732790067,38780
 	1675732790107,38793
@@ -64,7 +65,7 @@
 	1675732790267,38783
 	1675732790307,38790
 	1675732790347,38782
-	1675732790467,46321 <- Begin Block 2          
+	1675732790467,46321 <- Begin Section 2          
 	1675732790507,46327
 	1675732790547,46318
 	1675732790587,46316
@@ -72,12 +73,12 @@
 	1675732790667,46313
 	1675732790707,46313
 	1675732790747,46336
-	1675732790867,58772 <- Begin Block 3
+	1675732790867,58772 <- Begin Section 3
 	1675732790947,58774
 	1675732791027,58775
 	1675732791107,58776
 	1675732791187,58773
-	1675732791347,19982 <- Begin Block 4
+	1675732791347,19982 <- Begin Section 4
 	1675732791387,19982
 	1675732791427,19978
 
