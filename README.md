@@ -405,3 +405,27 @@ Procedure:
   For each value in compressedValues
     Append value to values
 </pre>
+
+## Validation 
+
+### Compress
+
+Data is only allowed to be compressed if:
+
+1. there are also Unixtimestamps for the sensor data 
+2. and each sensor has the same number of elements as there are unixtimestamps. 
+3. time_zone_offset is between -720 and 840
+
+### Decompress
+
+Data is only allowed to be decompressed if:
+
+1. there are also Unixtimestamps for the sensor data
+2. and each sensor has the same number of elements
+3. the sum of sections_sizes is equal to the number of sensor elements.
+4. the first element of outer_sections_durations_ms must allways be 0.
+5. the remaining elements of outer_sections_durations_ms must allways greater than 0.
+6. all but the last element of inner_sections_durations_ms must always be greater than 0. The last element may also be 0.
+7. if the sum of sections_sizes is equal to 1 the only element of inner_sections_durations_ms must be 0.
+8. all elements of sections_sizes must allways be greater than 0.
+9. time_zone_offset is between -720 and 840.

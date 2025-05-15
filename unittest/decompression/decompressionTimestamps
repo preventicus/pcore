@@ -1,0 +1,122 @@
+# Decompression 
+
+## DecompressTimestamps Tests
+
+### 1. ZeroTimestampTest
+
+- **Purpose**: Tests timestamps decompression with empty unix timestamps array
+- **Input**: first_unix_timestamp_ms = 0
+- **Input**: sections_sizes = []
+- **Input**: inner_sections_durations_ms = []
+- **Input**: outer_sections_durations_ms = []
+- **Expect**: length(unix_timestamps) == 0
+
+### 2. OneTimestampTest
+
+- **Purpose**: Tests timestamps decompression with one unix timestamp
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [1]
+- **Input**: inner_sections_durations_ms = [0]
+- **Input**: outer_sections_durations_ms = [0]
+- **Expect**: length(unix_timestamps) == 1
+- **Expect**: unix_timestamps == [1]
+
+### 3. OneSectionTest
+
+- **Purpose**: Tests timestamps decompression with one section
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [4]
+- **Input**: inner_sections_durations_ms = [1]
+- **Input**: outer_sections_durations_ms = [0]
+- **Expect**: length(unix_timestamps) == 4
+- **Expect**: unix_timestamps == [1,2,3,4]
+
+### 4. TwoSectionTest
+
+- **Purpose**: Tests timestamps decompression with two sections
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [4,4]
+- **Input**: inner_sections_durations_ms = [1,1]
+- **Input**: outer_sections_durations_ms = [0,5]
+- **Expect**: length(unix_timestamps) == 8
+- **Expect**: unix_timestamps == [1,2,3,4,6,7,8,9]
+
+### 5. ThreeSectionTest
+
+- **Purpose**: Tests timestamps decompression with three sections
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [4,4,3]
+- **Input**: inner_sections_durations_ms = [1,1,1]
+- **Input**: outer_sections_durations_ms = [0,5,5]
+- **Expect**: length(unix_timestamps) == 11
+- **Expect**: unix_timestamps == [1,2,3,4,6,7,8,9,11,12,13]
+
+### 6. LastSingleTimestampSectionTest
+
+- **Purpose**: Tests timestamps decompression with two sections and last section is one single timestamp
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [4,1]
+- **Input**: inner_sections_durations_ms = [1,0]
+- **Input**: outer_sections_durations_ms = [0,5]
+- **Expect**: length(unix_timestamps) == 5
+- **Expect**: unix_timestamps == [1,2,3,4,6]
+
+### 7. FirstSingleTimestampSectionTest
+
+- **Purpose**: Tests timestamps decompression with two sections and first timestamp is separated
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [2,3]
+- **Input**: inner_sections_durations_ms = [2,1]
+- **Input**: outer_sections_durations_ms = [0,3]
+- **Expect**: length(unix_timestamps) == 5
+- **Expect**: unix_timestamps == [1,3,4,5,6]
+
+### 8. ThreeSectionDifferentGapsWithSingleTimeStampTest
+
+- **Purpose**: Tests timestamps decompression with three sections and differend gaps between the sections and one timestamp in the middle
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [3,2,2]
+- **Input**: inner_sections_durations_ms = [1,3,1]
+- **Input**: outer_sections_durations_ms = [0,4,4]
+- **Expect**: length(unix_timestamps) == 7
+- **Expect**: unix_timestamps == [1,2,3,5,8,9,10]
+
+### 9. ThreeSectionDifferentGapsTest
+
+- **Purpose**: Tests timestamps decompression with three sections and differend gaps between the sections
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [3,3,3]
+- **Input**: inner_sections_durations_ms = [1,1,1]
+- **Input**: outer_sections_durations_ms = [0,4,5]
+- **Expect**: length(unix_timestamps) == 9
+- **Expect**: unix_timestamps == [1,2,3,5,6,7,10,11,12]
+
+### 10. FourSectionTest
+
+- **Purpose**: Tests timestamps decompression with three sections and differend big gaps between the sections
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [4,3,3,2]
+- **Input**: inner_sections_durations_ms = [1,3,1,5]
+- **Input**: outer_sections_durations_ms = [0,5,8,6]
+- **Expect**: length(unix_timestamps) == 12
+- **Expect**: unix_timestamps == [1,2,3,4,6,9,12,14,15,16,20,25]
+
+### 11. MixedSectionTest
+
+- **Purpose**: Tests timestamps decompression with three sections and differend big gaps between the sections
+- **Input**: first_unix_timestamp_ms = 0
+- **Input**: sections_sizes = [3,2,4,8,1]
+- **Input**: inner_sections_durations_ms = [2,7,1,3,0]
+- **Input**: outer_sections_durations_ms = [0,5,8,7,30]
+- **Expect**: length(unix_timestamps) == 18
+- **Expect**: unix_timestamps == [0,2,4,5,12,13,14,15,16,20,23,26,29,32,35,38,41,50]
+
+### 12. RealDataTest
+
+- **Purpose**: Tests timestamps decompression with three sections and differend big gaps between the sections
+- **Input**: first_unix_timestamp_ms = 1675732789987
+- **Input**: sections_sizes = [10,8,5,3]
+- **Input**: inner_sections_durations_ms = [40,40,80,40]
+- **Input**: outer_sections_durations_ms = [0,480,400,480]
+- **Expect**: length(unix_timestamps) == 26
+- **Expect**: unix_timestamps == [1675732789987,1675732790027,1675732790067,1675732790107,1675732790147,1675732790187,1675732790227,1675732790267,1675732790307,1675732790347,1675732790467,1675732790507,1675732790547,1675732790587,1675732790627,1675732790667,1675732790707,1675732790747,1675732790867,1675732790947,1675732791027,1675732791107,1675732791187,1675732791347,1675732791387,1675732791427]
