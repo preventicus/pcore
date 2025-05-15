@@ -2,8 +2,6 @@
 
 	Created by Steve Merschel 2022.
 
-	Version: 1.0.0
-
 	Copyright © 2022 PREVENTICUS GmbH
 
 	Redistribution and use in source and binary forms, with or without modification,
@@ -34,21 +32,114 @@
 */
 
 syntax = "proto3";
-
 package com.preventicus.pcore;
+option optimize_for = SPEED;
 
-import "pcore_raw.proto";
-import "pcore_version.proto";
+message Version {
+	uint32 major = 1;
+	uint32 minor = 2;
+	uint32 patch = 3;
+}
 
-message Data {  // This is the outer layer. The Data message wraps all informations.
+message Data { // This is the outer layer.
 
-    message Header { // The header collects all global data 
-        sint32 time_zone_offset_min                 = 1; // The time zone is set in minutes 
-        com.preventicus.pcore.Version pcore_version = 2; // The version of the used pcore definition
-    }
+	/*
+		Metadata
+	*/
+	message Metadata { // The metadata collects all global data 
+		message Device {
+			string name = 1;
+			string manufacturer = 2;
+			string id = 3;
+			Version firmware_version = 4;
+		}
+		sint32 timezone_offset_min = 1; // The time zone is set in minutes 
+		Version pcore_version = 2; // The version of the used pcore definition
+		Device device = 3; // information about the device
+	}
 
-    Header header                 = 1; // The header collects all global data
-    com.preventicus.pcore.Raw raw = 2; // Raw collects all raw sensor signals
-    reserved                        3; // Reserved for internal usage.
-	
+	Metadata metadata = 1;
+
+	/*
+		Timestamps 
+	*/
+
+	message CompressedTimestampsContainer {
+		uint64 first_unix_timestamp_ms = 1;
+		repeated uint32 outer_sections_durations_ms = 2;
+		repeated uint32 inner_sections_durations_ms = 3;
+		repeated uint32 sections_sizes = 4;
+	}
+
+	CompressedTimestampsContainer compressed_timestamps_container = 2;
+
+	/*
+		Sensor
+	*/
+
+	message Sensor {
+
+		/*
+			Values 
+		*/
+
+		message IntValuesContainer  {
+			repeated sint64 values = 1;
+		}
+
+		message DoubleValuesContainer  {
+			repeated double values = 1;
+		}
+
+		oneof Values {
+			IntValuesContainer int_values_container = 1;
+			DoubleValuesContainer double_values_container = 2;
+		}
+
+		reserved 3 to 5; // reserved for other values container 
+
+		/*
+			Type
+		*/
+
+		message Accelerometer {
+			enum Type {
+				TYPE_UNSPECIFIED = 0;
+				TYPE_X_COORDINATE = 1;
+				TYPE_Y_COORDINATE = 2;
+				TYPE_Z_COORDINATE = 3;
+				TYPE_EUCLIDEAN_DIFFERENCES_NORM = 4;
+			}
+			Type type = 1;
+		}
+
+		message Photoplethysmograph {
+			enum Color {
+				COLOR_UNSPECIFIED = 0;
+				COLOR_GREEN = 1;
+				COLOR_RED = 2;
+				COLOR_BLUE = 3;
+			}
+			oneof Light {
+				uint32 wavelength_nm = 1;
+				Color color = 2;
+			}
+		}
+
+		message Electrocardiogram {
+			uint32 channel = 1;
+		}
+
+		oneof Type {
+			Photoplethysmograph photoplethysmograph = 6;
+			Accelerometer accelerometer = 7;
+			Electrocardiogram electrocardiogram = 8;
+		}
+
+		reserved 9 to 15; // reserved for other sensor types 
+ 
+	}
+
+	repeated Sensor sensors = 3;
+
 }
