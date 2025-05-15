@@ -24,7 +24,7 @@
 	the initial timestamp, time deltas within a section, the time deltas between the 
 	sections, and the number of data points per section.
 
-	For data compression purposes, measurement values are stored in section form:
+	For data compression purposes, measurement values are stored as follow:
 	 • Integer values are compressed as cumulative differences (deltas), starting from zero.
 	 • Floating-point values are stored as-is, without compression.
 
