@@ -4,7 +4,7 @@
 
 ### 1. ZeroTimestampTest
 
-- **Purpose**: Tests timestamps comression with empty unix timestamps array
+- **Purpose**: Tests timestamps decompression with empty unix timestamps array
 - **Input**: first_unix_timestamp_ms = 0
 - **Input**: sections_sizes = []
 - **Input**: inner_sections_durations_ms = []
@@ -13,7 +13,7 @@
 
 ### 2. OneTimestampTest
 
-- **Purpose**: Tests timestamps comression with one unix timestamp
+- **Purpose**: Tests timestamps decompression with one unix timestamp
 - **Input**: first_unix_timestamp_ms = 1
 - **Input**: sections_sizes = [1]
 - **Input**: inner_sections_durations_ms = [0]
@@ -23,7 +23,7 @@
 
 ### 3. OneSectionTest
 
-- **Purpose**: Tests timestamps comression with one section
+- **Purpose**: Tests timestamps decompression with one section
 - **Input**: first_unix_timestamp_ms = 1
 - **Input**: sections_sizes = [4]
 - **Input**: inner_sections_durations_ms = [1]
@@ -33,7 +33,7 @@
 
 ### 4. TwoSectionTest
 
-- **Purpose**: Tests timestamps comression with two sections
+- **Purpose**: Tests timestamps decompression with two sections
 - **Input**: first_unix_timestamp_ms = 1
 - **Input**: sections_sizes = [4,4]
 - **Input**: inner_sections_durations_ms = [1,1]
@@ -43,7 +43,7 @@
 
 ### 5. ThreeSectionTest
 
-- **Purpose**: Tests timestamps comression with three sections
+- **Purpose**: Tests timestamps decompression with three sections
 - **Input**: first_unix_timestamp_ms = 1
 - **Input**: sections_sizes = [4,4,3]
 - **Input**: inner_sections_durations_ms = [1,1,1]
@@ -53,7 +53,7 @@
 
 ### 6. LastSingleTimestampSectionTest
 
-- **Purpose**: Tests timestamps comression with two sections and last section is one single timestamp
+- **Purpose**: Tests timestamps decompression with two sections and last section is one single timestamp
 - **Input**: first_unix_timestamp_ms = 1
 - **Input**: sections_sizes = [4,1]
 - **Input**: inner_sections_durations_ms = [1,0]
@@ -63,7 +63,7 @@
 
 ### 7. FirstSingleTimestampSectionTest
 
-- **Purpose**: Tests timestamps comression with two sections and first timestamp is separated
+- **Purpose**: Tests timestamps decompression with two sections and first timestamp is separated
 - **Input**: first_unix_timestamp_ms = 1
 - **Input**: sections_sizes = [2,3]
 - **Input**: inner_sections_durations_ms = [2,1]
@@ -73,7 +73,7 @@
 
 ### 8. ThreeSectionDifferentGapsWithSingleTimeStampTest
 
-- **Purpose**: Tests timestamps comression with three sections and differend gaps between the sections and one timestamp in the middle
+- **Purpose**: Tests timestamps decompression with three sections and differend gaps between the sections and one timestamp in the middle
 - **Input**: first_unix_timestamp_ms = 1
 - **Input**: sections_sizes = [3,2,2]
 - **Input**: inner_sections_durations_ms = [1,3,1]
@@ -83,7 +83,7 @@
 
 ### 9. ThreeSectionDifferentGapsTest
 
-- **Purpose**: Tests timestamps comression with three sections and differend gaps between the sections
+- **Purpose**: Tests timestamps decompression with three sections and differend gaps between the sections
 - **Input**: first_unix_timestamp_ms = 1
 - **Input**: sections_sizes = [3,3,3]
 - **Input**: inner_sections_durations_ms = [1,1,1]
@@ -93,7 +93,7 @@
 
 ### 10. FourSectionTest
 
-- **Purpose**: Tests timestamps comression with three sections and differend big gaps between the sections
+- **Purpose**: Tests timestamps decompression with three sections and differend big gaps between the sections
 - **Input**: first_unix_timestamp_ms = 1
 - **Input**: sections_sizes = [4,3,3,2]
 - **Input**: inner_sections_durations_ms = [1,3,1,5]
@@ -103,7 +103,7 @@
 
 ### 11. MixedSectionTest
 
-- **Purpose**: Tests timestamps comression with three sections and differend big gaps between the sections
+- **Purpose**: Tests timestamps decompression with three sections and differend big gaps between the sections
 - **Input**: first_unix_timestamp_ms = 0
 - **Input**: sections_sizes = [3,2,4,8,1]
 - **Input**: inner_sections_durations_ms = [2,7,1,3,0]
@@ -113,7 +113,7 @@
 
 ### 12. RealDataTest
 
-- **Purpose**: Tests timestamps comression with three sections and differend big gaps between the sections
+- **Purpose**: Tests timestamps decompression with three sections and differend big gaps between the sections
 - **Input**: first_unix_timestamp_ms = 1675732789987
 - **Input**: sections_sizes = [10,8,5,3]
 - **Input**: inner_sections_durations_ms = [40,40,80,40]
