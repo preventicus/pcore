@@ -21,7 +21,8 @@
 	sensor are shared and compressed using a structure called CompressedTimestampsContainer. 
 	This container represents the measurement timeline by dividing it into 
 	sections of constant time intervals. The compressed representation stores 
-	the initial timestamp, per-section time deltas, and the number of data points per section.
+	the initial timestamp, time deltas within a section, the time deltas between the 
+	sections, and the number of data points per section.
 
 	For data compression purposes, measurement values are stored in section form:
 	 • Integer values are compressed as cumulative differences (deltas), starting from zero.
