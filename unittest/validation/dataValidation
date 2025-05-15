@@ -36,6 +36,17 @@
 - **Input**: intValues = [3,1,3,2,7,6,4]
 - **Expect**: Throw InvalidDataException in compressing process
 
+### 6. WrongTimeZoneOffsetNegativeTest
+
+- **Purpose**: Test compressing process off the metadata with a to negative time_zone_offset
+- **Input**: timezone_offset_min = -721
+- **Expect**: Throw WrongValueException in compressing process
+
+### 7. WrongTimeZoneOffsetPositiveTest
+
+- **Purpose**: Test compressing process off the metadata with a to positive time_zone_offset
+- **Input**: timezone_offset_min = 841
+- **Expect**: Throw WrongValueException in compressing process
 
 ## Decompressing
 
@@ -163,3 +174,15 @@
 - **Input**: outer_sections_durations_ms = [0, 2]
 - **Input**: doubleValues = [3.1,2.2]
 - **Expect**: Throw InvalidDataException in decompressing process
+
+### 14. WrongTimeZoneOffsetNegativeTest
+
+- **Purpose**: Test compressing process off the metadata with a to negative time_zone_offset
+- **Input**: timezone_offset_min = -721
+- **Expect**: Throw WrongValueException in compressing process
+
+### 15. WrongTimeZoneOffsetPositiveTest
+
+- **Purpose**: Test compressing process off the metadata with a to positive time_zone_offset
+- **Input**: timezone_offset_min = 841
+- **Expect**: Throw WrongValueException in compressing process
