@@ -39,4 +39,127 @@
 
 ## Decompressing
 
+### 1. MissingUnixTimestampsTest
 
+- **Purpose**: Test decompressing process with only IntValues for one sensor and none timestamps
+- **Input**: intValues = [1,2,3]
+- **Expect**: Throw InvalidDataException in decompressing process
+
+### 2. MissingSensorTest
+
+- **Purpose**: Test decompressing process with only unix timestamps and none values for one sensor
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [3]
+- **Input**: inner_sections_durations_ms = [2]
+- **Input**: outer_sections_durations_ms = [0]
+- **Expect**: Throw InvalidDataException in decompressing process
+
+### 3. MismatchedTimestampVectorLengthsTest1
+
+- **Purpose**: Test decompressing process with different length of timestamp container length. inner_sections_durations_ms is to long.
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [3]
+- **Input**: inner_sections_durations_ms = [2,2]
+- **Input**: outer_sections_durations_ms = [0]
+- **Input**: intValues = [1,2,3]
+- **Expect**: Throw InvalidDataException in decompressing process
+
+### 4. MismatchedTimestampVectorLengthsTest2
+
+- **Purpose**: Test decompressing process with different length of timestamp container length. outer_sections_durations_ms is to long.
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [3]
+- **Input**: inner_sections_durations_ms = [2]
+- **Input**: outer_sections_durations_ms = [0,2]
+- **Input**: intValues = [1,2,3]
+- **Expect**: Throw InvalidDataException in decompressing process
+
+### 5. MismatchedTimestampVectorLengthsTest3
+
+- **Purpose**: Test decompressing process with different length of timestamp container length. sections_sizes is to long.
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [3,3]
+- **Input**: inner_sections_durations_ms = [2]
+- **Input**: outer_sections_durations_ms = [0]
+- **Input**: intValues = [1,2,3]
+- **Expect**: Throw InvalidDataException in decompressing process
+
+### 6. SensorIntValueCountMismatchTest
+
+- **Purpose**: Test decompressing process with different number of timestamp and sensor data for intValues
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [5]
+- **Input**: inner_sections_durations_ms = [2]
+- **Input**: outer_sections_durations_ms = [0]
+- **Input**: intValues = [3,2]
+- **Expect**: Throw InvalidDataException in decompressing process
+
+### 7. SensorDoubleValueCountMismatchTest
+
+- **Purpose**: Test decompressing process with different number of timestamp and sensor data for double values
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [5]
+- **Input**: inner_sections_durations_ms = [2]
+- **Input**: outer_sections_durations_ms = [0]
+- **Input**: doubleValues = [3.1,2.2]
+- **Expect**: Throw InvalidDataException in decompressing process
+
+### 8. OuterSectionDurationFirstValueTest
+
+- **Purpose**: Test decompressing process with a first not allowed outer_sections_durations_ms value
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [1]
+- **Input**: inner_sections_durations_ms = [0]
+- **Input**: outer_sections_durations_ms = [10]
+- **Input**: doubleValues = [3.1]
+- **Expect**: Throw InvalidDataException in decompressing process
+
+### 9. OuterSectionDurationValueTest
+
+- **Purpose**: Test decompressing process with a not allowed outer_sections_durations_ms value
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [1, 1]
+- **Input**: inner_sections_durations_ms = [2, 2]
+- **Input**: outer_sections_durations_ms = [0, 0]
+- **Input**: doubleValues = [3.1,2.2]
+- **Expect**: Throw InvalidDataException in decompressing process
+
+### 10. InnerSectionDurationFirstValueTest
+
+- **Purpose**: Test decompressing process with a not allowed inner_sections_durations_ms value
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [1, 1]
+- **Input**: inner_sections_durations_ms = [0, 2]
+- **Input**: outer_sections_durations_ms = [0, 1]
+- **Input**: doubleValues = [3.1,2.2]
+- **Expect**: Throw InvalidDataException in decompressing process
+
+### 11. InnerSectionDurationValueTest
+
+- **Purpose**: Test decompressing process with a allowed inner_sections_durations_ms value
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [1, 1]
+- **Input**: inner_sections_durations_ms = [2, 0]
+- **Input**: outer_sections_durations_ms = [0, 1]
+- **Input**: doubleValues = [3.1,2.2]
+- **Expect**: No Throw InvalidDataException in decompressing process
+
+### 12. InnerSectionDurationValueTest2
+
+- **Purpose**: Test decompressing process with a not allowed inner_sections_durations_ms value
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [1]
+- **Input**: inner_sections_durations_ms = [2]
+- **Input**: outer_sections_durations_ms = [0]
+- **Input**: doubleValues = [3.1]
+- **Expect**: Throw InvalidDataException in decompressing process
+
+### 13. sectionsSizesValueTest
+
+- **Purpose**: Test decompressing process with a not allowed sections_sizes value
+- **Input**: first_unix_timestamp_ms = 1
+- **Input**: sections_sizes = [2, 0]
+- **Input**: inner_sections_durations_ms = [2, 2]
+- **Input**: outer_sections_durations_ms = [0, 2]
+- **Input**: doubleValues = [3.1,2.2]
+- **Expect**: Throw InvalidDataException in decompressing process
