@@ -166,8 +166,8 @@ Accelerometer --> AccelerometerType : type
 The basic idea behind compressing a sequence of unix timestamps is to group 
 all timestamps that have a constant interval between them into sections.
 
-For each section, only the first timestamp needs to be stored in full 
-stored in first_unix_timestamp_ms. Since the time differences between consecutive 
+For each section, only the first timestamp needs to be stored in full under 
+first_unix_timestamp_ms. Since the time differences between consecutive 
 timestamps within a section are equal by definition, this interval stored in
 inner_sections_durations_ms only needs to be stored once per section.
 If a section contains only a single timestamp, its inner section duration 
