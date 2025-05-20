@@ -412,61 +412,61 @@ Data is only allowed to be decompressed if:
 
 ## Example
 
-(each | marks a timestamp, the difference between two | with no space is for this 
-example defined 40 milliseconds, so 1 space is 80 milliseconds)
+    (each | marks a timestamp, the difference between two | with no space is for this 
+    example defined 40 milliseconds, so 1 space is 80 milliseconds)
 
-  Sequence 1   Sequence 2   Sequence 3   Sequence 4
-  ||||||||||   ||||||||     | | | | |      |||   
-──↑────────────↑────────────↑─↑────────────────────>        
-  a            b            c d                 time
+      Sequence 1   Sequence 2   Sequence 3   Sequence 4
+      ||||||||||   ||||||||     | | | | |      |||   
+    ──↑────────────↑────────────↑─↑────────────────────>        
+      a            b            c d                 time
 
-  a: first_unix_timestamp_ms (begin measurement)
-  c to d: inner_sections_durations_ms (time difference in each section)
-  a to a: outer_sections_durations_ms[0] (allways 0)
-  a to b: outer_sections_durations_ms[1] (time differences to predecessor start of section)
-  b to c: outer_sections_durations_ms[2] (and so on)
+      a: first_unix_timestamp_ms (begin measurement)
+      c to d: inner_sections_durations_ms (time difference in each section)
+      a to a: outer_sections_durations_ms[0] (allways 0)
+      a to b: outer_sections_durations_ms[1] (time differences to predecessor start of section)
+      b to c: outer_sections_durations_ms[2] (and so on)
 
 
-unix,         ppg
-1675732789987,38763 <- Begin Section 1
-1675732790027,38771
-1675732790067,38780
-1675732790107,38793
-1675732790147,38784
-1675732790187,38780
-1675732790227,38780
-1675732790267,38783
-1675732790307,38790
-1675732790347,38782
-1675732790467,46321 <- Begin Section 2          
-1675732790507,46327
-1675732790547,46318
-1675732790587,46316
-1675732790627,46313
-1675732790667,46313
-1675732790707,46313
-1675732790747,46336
-1675732790867,58772 <- Begin Section 3
-1675732790947,58774
-1675732791027,58775
-1675732791107,58776
-1675732791187,58773
-1675732791347,19982 <- Begin Section 4
-1675732791387,19982
-1675732791427,19978
+    unix,         ppg
+    1675732789987,38763 <- Begin Section 1
+    1675732790027,38771
+    1675732790067,38780
+    1675732790107,38793
+    1675732790147,38784
+    1675732790187,38780
+    1675732790227,38780
+    1675732790267,38783
+    1675732790307,38790
+    1675732790347,38782
+    1675732790467,46321 <- Begin Section 2          
+    1675732790507,46327
+    1675732790547,46318
+    1675732790587,46316
+    1675732790627,46313
+    1675732790667,46313
+    1675732790707,46313
+    1675732790747,46336
+    1675732790867,58772 <- Begin Section 3
+    1675732790947,58774
+    1675732791027,58775
+    1675732791107,58776
+    1675732791187,58773
+    1675732791347,19982 <- Begin Section 4
+    1675732791387,19982
+    1675732791427,19978
 
-leads to:
+    leads to:
 
-Data: [{
-  CompressedTimestampsContainer: {
-    first_unix_timestamp_ms: 1675732789987,
-    outer_sections_durations_ms: [0, 480, 400, 480],
-    inner_sections_durations_ms: [40, 40, 80, 40],
-    sections_sizes: [10, 8, 5, 3]
-  },
-  Sensors: [{
-    IntValuesContainer: [{
-      values: [8, 9, 13, -9, -4, 0, 3, 7, -8, 7539, 6, -9, -2, -3, 0, 0, 23, 12436, 2, 1, 1, -3, -38791, 0, -4]
+    Data: [{
+      CompressedTimestampsContainer: {
+        first_unix_timestamp_ms: 1675732789987,
+        outer_sections_durations_ms: [0, 480, 400, 480],
+        inner_sections_durations_ms: [40, 40, 80, 40],
+        sections_sizes: [10, 8, 5, 3]
+      },
+      Sensors: [{
+        IntValuesContainer: [{
+          values: [8, 9, 13, -9, -4, 0, 3, 7, -8, 7539, 6, -9, -2, -3, 0, 0, 23, 12436, 2, 1, 1, -3, -38791, 0, -4]
+        }]
+      }]
     }]
-  }]
-}]
