@@ -131,7 +131,19 @@
 - **Expect**: length(outer_sections_durations_ms) == 5
 - **Expect**: outer_sections_durations_ms == [0,5,8,7,30]
 
-### 12. RealDataTest
+### 12. AllDifferentTimestampsDurationTest
+
+- **Purpose**: Tests timestamps compression with three sections and each duration between the timestamps are different
+- **Input**: unix_timestamps = [1000, 1010, 1030, 1060, 1100]
+- **Expect**: first_unix_timestamp_ms == 1000
+- **Expect**: length(sections_sizes) == 3
+- **Expect**: sections_sizes == [2,2,1]
+- **Expect**: length(inner_sections_durations_ms) == 3
+- **Expect**: inner_sections_durations_ms == [10,30,0]
+- **Expect**: length(outer_sections_durations_ms) == 3
+- **Expect**: outer_sections_durations_ms == [0,30,70]
+
+### 13. RealDataTest
 
 - **Purpose**: Tests timestamps compression with three sections and different big gaps between the sections
 - **Input**: unix_timestamps = [1675732789987,1675732790027,1675732790067,1675732790107,1675732790147,1675732790187,1675732790227,1675732790267,1675732790307,1675732790347,1675732790467,1675732790507,1675732790547,1675732790587,1675732790627,1675732790667,1675732790707,1675732790747,1675732790867,1675732790947,1675732791027,1675732791107,1675732791187,1675732791347,1675732791387,1675732791427]
