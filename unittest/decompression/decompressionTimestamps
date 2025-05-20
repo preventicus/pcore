@@ -111,7 +111,17 @@
 - **Expect**: length(unix_timestamps) == 18
 - **Expect**: unix_timestamps == [0,2,4,5,12,13,14,15,16,20,23,26,29,32,35,38,41,50]
 
-### 12. RealDataTest
+### 12. AllDifferentTimestampsDurationTest
+
+- **Purpose**: Tests timestamps compression with three sections and each duration between the timestamps are different
+- **Input**: first_unix_timestamp_ms = 1000
+- **Input**: sections_sizes == [2,2,1]
+- **Input**: inner_sections_durations_ms = [10,30,0]
+- **Input**: outer_sections_durations_ms = [0,30,70]
+- **Expect**: length(unix_timestamps) == 5
+- **Expect**: unix_timestamps = [1000, 1010, 1030, 1060, 1100]
+
+### 13. RealDataTest
 
 - **Purpose**: Tests timestamps decompression with three sections and different big gaps between the sections
 - **Input**: first_unix_timestamp_ms = 1675732789987
