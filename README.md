@@ -242,17 +242,16 @@ Procedure:
 
   Set sizeUnixTimestamps ← length(unixTimestampsMs)
   Set firstUnixTimestampMs ← unixTimestampsMs[0]
+  Append 0 to outerSectionsDurationsMs
 
   If numberOfSections == 1
     If sizeUnixTimestamps > 1
 	  Append unixTimestampsMs[1] - firstUnixTimestampMs to innerSectionsDurationsMs
     Else
-	  Append 0 to innerSectionsDurationsMs
-    Append 0 to outerSectionsDurationsMs
+	  Append 0 to innerSectionsDurationsMs    
     Append sizeUnixTimestamps to sectionsSizes
     Return
 
-  Append 0 to outerSectionsDurationsMs
   Append unixTimestampsMs[1] - firstUnixTimestampMs to innerSectionsDurationsMs
   Append sectionIdxs[1] to sectionsSizes
 
