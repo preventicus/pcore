@@ -470,7 +470,7 @@ Data is only allowed to be compressed if:
    fits into a signed 64-bit integer (`WrongValueException`),
 7. every double value is finite, i.e. not `NaN`, `Infinity` or `-Infinity`
    (`WrongValueException`),
-8. timezone_offset_min is between -720 and 840 (`WrongValueException`),
+8. timezone_offset_min is between -720 and 840 (inclusive) (`WrongValueException`),
 9. every sensor has a sensor type set, i.e. one of photoplethysmograph, accelerometer
    or electrocardiogram (`InvalidDataException`). The `type` field of `Accelerometer`
    is checked by rule 12,
@@ -503,7 +503,7 @@ Data is only allowed to be decompressed if:
 8. every decompressed integer value fits into a signed 64-bit integer (`WrongValueException`),
 9. every double value is finite, i.e. not `NaN`, `Infinity` or `-Infinity`
    (`WrongValueException`),
-10. timezone_offset_min is between -720 and 840 (`WrongValueException`),
+10. timezone_offset_min is between -720 and 840 (inclusive) (`WrongValueException`),
 11. every photoplethysmograph has a light set, i.e. `color` or `wavelength_nm`
     (`InvalidDataException`),
 12. every sensor type has allowed values, see
