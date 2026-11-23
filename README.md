@@ -14,17 +14,17 @@
 	is stored in a uniform Sensor structure, which encapsulates 
 	sensor-specific metadata and a sequence of measurement values. 
 	Depending on the sensor type, these values are stored either as 
-	integers (IntValues) or floating-point numbers (DoubleValues).
+	integers (IntValuesContainer) or floating-point numbers (DoubleValuesContainer).
 
-	Each sensor provides time-synchronized measurements across one or 
-	multiple channels. The underlying timestamps for all channels of a 
-	sensor are shared and compressed using a structure called CompressedTimestampsContainer. 
+	All sensors of a Data message provide time-synchronized measurements. 
+	The underlying timestamps are shared by all sensors and compressed using 
+	a structure called CompressedTimestampsContainer. 
 	This container represents the measurement timeline by dividing it into 
 	sections of constant time intervals. The compressed representation stores 
 	the initial timestamp, time deltas within a section, the time deltas between the 
 	sections, and the number of data points per section.
 
-	For data compression purposes, measurement values are stored as follow:
+	For data compression purposes, measurement values are stored as follows:
 	 • Integer values are compressed as cumulative differences (deltas), starting from zero.
 	 • Floating-point values are stored as-is, without compression.
 
@@ -40,18 +40,49 @@
   We recommend naming the resulting data files *.pcore (PreventicusCore).
 
   The proto definition uses protobuf version 3. 
+
+## Scope and Constraints
+
+- **One shared timeline per Data message.** All sensors of a `Data` message share a
+  single `CompressedTimestampsContainer`, so every sensor holds exactly one value per
+  timestamp. Sensors that are sampled at different rates (e.g. ACC at 25 Hz and PPG at
+  100 Hz) or that are not sampled simultaneously must be stored in separate `Data`
+  messages, i.e. in separate *.pcore files.
+- **Timestamps** are Unix timestamps in milliseconds (UTC) and must be strictly
+  increasing. `timezone_offset_min` describes the local time zone offset of the
+  recording in minutes and does not modify the stored timestamps.
+- **Values** are stored as delivered by the device. The format does not define
+  physical units or scaling of the values.
+- **Sensor identification.** A sensor is identified by its type message including all
+  of its fields, not by its position in `sensors`:
+
+  | Sensor type | identified by |
+  |---|---|
+  | `Photoplethysmograph` | light (`wavelength_nm` or `color`) and `channel` |
+  | `Accelerometer` | `type` and `channel` |
+  | `Electrocardiogram` | `channel` |
+
+  Writers must give every sensor a type and must make sure that no two sensors of a
+  `Data` message have the same identification, e.g. two green PPG photodiodes get
+  `channel` 0 and 1. The order of the sensors has no meaning; readers should look up
+  sensors by their identification.
+- **Files without channels.** The `channel` fields of `Photoplethysmograph` and
+  `Accelerometer` were added later. Older files may therefore contain several sensors
+  with the same identification (e.g. two green PPG sensors without channel). Readers
+  must still accept such files and must keep the order of the sensors, because in these
+  files the order is the only way to tell such sensors apart. For this reason the
+  uniqueness is only checked when compressing.
  
 ## Protobuf Struct
 
 ```mermaid
 classDiagram
 
-%% === Hauptstruktur ===
+%% === Main structure ===
 
 class Data {
   +metadata: Metadata
-  %% oneof timestamps:
-  +timestamps: CompressedTimestampsContainer
+  +compressed_timestamps_container: CompressedTimestampsContainer
   +sensors: Sensor[]
 }
 
@@ -82,23 +113,25 @@ class CompressedTimestampsContainer {
 %% === Sensor ===
 
 class Sensor {
-  %% oneof type:
+  %% oneof Values:
+  +values: IntValuesContainer | DoubleValuesContainer
+  %% oneof Type:
   +type: Photoplethysmograph | Accelerometer | Electrocardiogram
-  +values: IntValues | DoubleValues
 }
 
-class IntValues {
-    values: sint64[]
+class IntValuesContainer {
+  +values: sint64[]
 }
 
-class DoubleValues {
-    values: double[]
+class DoubleValuesContainer {
+  +values: double[]
 }
 
 %% === Accelerometer ===
 
 class Accelerometer {
   +type: AccelerometerType
+  +channel: uint32
 }
 
 class AccelerometerType {
@@ -113,8 +146,10 @@ class AccelerometerType {
 %% === Photoplethysmograph ===
 
 class Photoplethysmograph {
-  %% oneof light:
-  +light: uint32 | PhotoplethysmographColor
+  %% oneof Light:
+  +wavelength_nm: uint32
+  +color: PhotoplethysmographColor
+  +channel: uint32
 }
 
 class PhotoplethysmographColor {
@@ -125,10 +160,10 @@ class PhotoplethysmographColor {
   COLOR_BLUE
 }
 
-%% ====== Electrocardiogram ===
+%% === Electrocardiogram ===
 
 class Electrocardiogram {
-    +channel: uint32
+  +channel: uint32
 }
 
 %% === Version ===
@@ -139,7 +174,7 @@ class Version {
   +patch: uint32
 }
 
-%% === Beziehungen ===
+%% === Relations ===
 
 Data --> Metadata
 Metadata --> Device
@@ -152,8 +187,8 @@ Data --> Sensor
 Sensor --> Photoplethysmograph
 Sensor --> Accelerometer
 Sensor --> Electrocardiogram
-Sensor --> IntValues 
-Sensor --> DoubleValues 
+Sensor --> IntValuesContainer 
+Sensor --> DoubleValuesContainer 
 
 Photoplethysmograph --> PhotoplethysmographColor : color
 Accelerometer --> AccelerometerType : type
@@ -186,7 +221,9 @@ the array from left to right and check whether the time difference between conse
 timestamps remains constant. If the difference changes, a new section is started 
 at that point.
 
-The following algorithm demonstrates this approach:
+The following algorithms demonstrate this approach. They expect the input to be 
+valid according to the [compression validation rules](#compress-1), in particular 
+the timestamps must be strictly increasing.
 
 **Algorithm: FindSectionIndices**
 <pre>
@@ -194,7 +231,7 @@ Name:
   FindSectionIndices
 
 Input:
-  unixTimestampsMs = [t₀, t₁, ..., tₙ]  // ordered list of Unix timestamps
+  unixTimestampsMs = [t₀, t₁, ..., tₙ]  // strictly increasing list of Unix timestamps
 
 Output:
   SectionIdxs = [s₀, s₁, ..., sₘ] // indices in the Timestamps array where new sections start
@@ -220,9 +257,10 @@ Procedure:
   Return SectionIdxs
 </pre>
 
+**Algorithm: CompressTimestamps**
 <pre>
 Name: 
-  CompressTimestamp
+  CompressTimestamps
 
 Input:
   unixTimestampsMs
@@ -246,9 +284,9 @@ Procedure:
 
   If numberOfSections == 1
     If sizeUnixTimestamps > 1
-	  Append unixTimestampsMs[1] - firstUnixTimestampMs to innerSectionsDurationsMs
+      Append unixTimestampsMs[1] - firstUnixTimestampMs to innerSectionsDurationsMs
     Else
-	  Append 0 to innerSectionsDurationsMs    
+      Append 0 to innerSectionsDurationsMs    
     Append sizeUnixTimestamps to sectionsSizes
     Return
 
@@ -272,6 +310,10 @@ Procedure:
   Append sizeUnixTimestamps - lastSectionIndex to sectionsSizes
 </pre>
 
+Because a new section always takes over the following timestamp, only the last section 
+can consist of a single timestamp. Consequently, an inner section duration of 0 can only 
+occur in the last section.
+
 ### Compress Integer Value
 
 To compress integer values in Protobuf, it is generally more efficient to 
@@ -282,21 +324,21 @@ the difference is defined as the difference between that value and zero.
 
 <pre>
 Name:
-  CompressIntergerValues
+  CompressIntegerValues
 
 Input:
-  values // list of integers (IntValues.values)
+  values // list of integers (IntValuesContainer.values)
 
 Output:
-  compressValues
+  compressedValues
 
 Procedure:
   If values is empty:
     Return
 
-  Append values[0] to compressValues
+  Append values[0] to compressedValues
   For i from 1 to length(values) - 1:
-    Append values[i] - values[i - 1] to compressValues
+    Append values[i] - values[i - 1] to compressedValues
 </pre>
 
 ### Compress Double Value
@@ -306,10 +348,10 @@ Therefore, double values are stored as-is.
 
 <pre>
 Name:
-  CompressDoupleValues
+  CompressDoubleValues
 
 Input:
-  values // list of doubles (DoubleValues.values)
+  values // list of doubles (DoubleValuesContainer.values)
 
 Output:
   compressedValues
@@ -349,10 +391,10 @@ Procedure:
 ### Decompress Integer Value
 <pre>
 Name:
-  DecompressIntegerValue
+  DecompressIntegerValues
 
 Input:
-  compressedValues // list of differences (IntValues)
+  compressedValues // list of differences (IntValuesContainer.values)
 
 Output:
   values // list of integers
@@ -363,7 +405,7 @@ Procedure:
 
   Set cumulativeSum ← 0
   For each difference in compressedValues
-	Set cumulativeSum ← cumulativeSum + difference
+    Set cumulativeSum ← cumulativeSum + difference
     Append cumulativeSum to values
 
   Return values
@@ -372,10 +414,10 @@ Procedure:
 ### Decompress Double Value
 <pre>
 Name:
-  DecompressDoubleValue
+  DecompressDoubleValues
 
 Input:
-  compressedValues // list of doubles (DoubleValues)
+  compressedValues // list of doubles (DoubleValuesContainer.values)
 
 Output:
   values // list of doubles
@@ -387,27 +429,53 @@ Procedure:
 
 ## Validation 
 
+Two kinds of errors are distinguished:
+
+- `InvalidDataException`: the data is structurally inconsistent (missing parts, 
+  mismatching lengths, timestamps that are not strictly increasing, ...).
+- `WrongValueException`: a single value is outside of its allowed range.
+
 ### Compress
 
 Data is only allowed to be compressed if:
 
-1. there are also Unixtimestamps for the sensor data 
-2. and each sensor has the same number of elements as there are unixtimestamps. 
-3. time_zone_offset is between -720 and 840
+1. there is at least one unix timestamp and at least one sensor (`InvalidDataException`),
+2. each sensor has the same number of elements as there are unix timestamps (`InvalidDataException`),
+3. the unix timestamps are strictly increasing, i.e. there are no duplicates and no 
+   decreasing timestamps (`InvalidDataException`),
+4. every resulting inner and outer section duration fits into `uint32`, i.e. is at 
+   most 4294967295 ms (`WrongValueException`),
+5. every difference between consecutive integer values (and the first value itself) 
+   fits into a signed 64-bit integer (`WrongValueException`),
+6. timezone_offset_min is between -720 and 840 (`WrongValueException`),
+7. every sensor has a type (`InvalidDataException`),
+8. no two sensors have the same identification, see 
+   [Sensor identification](#scope-and-constraints) (`InvalidDataException`).
 
 ### Decompress
 
 Data is only allowed to be decompressed if:
 
-1. there are also Unixtimestamps for the sensor data
-2. and each sensor has the same number of elements
-3. the sum of sections_sizes is equal to the number of sensor elements.
-4. the first element of outer_sections_durations_ms must allways be 0.
-5. the remaining elements of outer_sections_durations_ms must allways greater than 0.
-6. all but the last element of inner_sections_durations_ms must always be greater than 0. The last element may also be 0.
-7. if the sum of sections_sizes is equal to 1 the only element of inner_sections_durations_ms must be 0.
-8. all elements of sections_sizes must allways be greater than 0.
-9. time_zone_offset is between -720 and 840.
+1. there is a compressed_timestamps_container and at least one sensor (`InvalidDataException`),
+2. outer_sections_durations_ms, inner_sections_durations_ms and sections_sizes 
+   have the same length (`InvalidDataException`),
+3. each sensor has the same number of elements, and this number equals the sum of 
+   sections_sizes (`InvalidDataException`),
+4. all elements of sections_sizes are greater than 0 (`InvalidDataException`),
+5. the first element of outer_sections_durations_ms is 0 (`InvalidDataException`),
+6. every other element of outer_sections_durations_ms is greater than the duration 
+   covered by the previous section, i.e. 
+   `outer_sections_durations_ms[i] > (sections_sizes[i-1] - 1) * inner_sections_durations_ms[i-1]`. 
+   This guarantees that sections do not overlap and that the decompressed timestamps 
+   are strictly increasing (`InvalidDataException`),
+7. an element of inner_sections_durations_ms is 0 if and only if the corresponding 
+   section consists of a single timestamp (`sections_sizes[i] == 1`) (`InvalidDataException`),
+8. every decompressed integer value fits into a signed 64-bit integer (`WrongValueException`),
+9. timezone_offset_min is between -720 and 840 (`WrongValueException`).
+
+The sensor type and the uniqueness of the sensor identification are intentionally not 
+checked when decompressing, so that files written before the `channel` fields existed 
+can still be read (see [Files without channels](#scope-and-constraints)).
 
 ## Example
 
@@ -421,7 +489,7 @@ Data is only allowed to be decompressed if:
 
       a: first_unix_timestamp_ms (begin measurement)
       c to d: inner_sections_durations_ms (time difference in each section)
-      a to a: outer_sections_durations_ms[0] (allways 0)
+      a to a: outer_sections_durations_ms[0] (always 0)
       a to b: outer_sections_durations_ms[1] (time differences to predecessor start of section)
       b to c: outer_sections_durations_ms[2] (and so on)
 
@@ -454,18 +522,83 @@ Data is only allowed to be decompressed if:
     1675732791387,19982
     1675732791427,19978
 
-    leads to:
+    leads to the following Data message (protobuf text format, metadata omitted):
 
-    Data: [{
-      CompressedTimestampsContainer: {
-        first_unix_timestamp_ms: 1675732789987,
-        outer_sections_durations_ms: [0, 480, 400, 480],
-        inner_sections_durations_ms: [40, 40, 80, 40],
-        sections_sizes: [10, 8, 5, 3]
-      },
-      Sensors: [{
-        IntValuesContainer: [{
-          values: [38763, 8, 9, 13, -9, -4, 0, 3, 7, -8, 7539, 6, -9, -2, -3, 0, 0, 23, 12436, 2, 1, 1, -3, -38791, 0, -4]
-        }]
-      }]
-    }]
+    compressed_timestamps_container {
+      first_unix_timestamp_ms: 1675732789987
+      outer_sections_durations_ms: [0, 480, 400, 480]
+      inner_sections_durations_ms: [40, 40, 80, 40]
+      sections_sizes: [10, 8, 5, 3]
+    }
+    sensors {
+      int_values_container {
+        values: [38763, 8, 9, 13, -9, -4, 0, 3, 7, -8, 7539, 6, -9, -2, -3, 0, 0, 23, 12436, 2, 1, 1, -3, -38791, 0, -4]
+      }
+      photoplethysmograph {
+        color: COLOR_GREEN
+      }
+    }
+
+## Test Specifications
+
+The directory `unittest/` contains language-independent test cases as JSON files that 
+every implementation of pcore should reproduce:
+
+- `unittest/compression/` – timestamp and value compression
+- `unittest/decompression/` – timestamp and value decompression
+- `unittest/validation/` – validation rules for compressing and decompressing
+
+### File format
+
+Each file contains a list of test cases:
+
+```json
+{
+  "tests": [
+    {
+      "name": "TwoSectionTest",
+      "operation": "compress_timestamps",
+      "purpose": "Tests timestamps compression with two sections",
+      "input": { "unix_timestamps": [1, 2, 3, 4, 6, 7, 8, 9] },
+      "expected": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [4, 4],
+        "inner_sections_durations_ms": [1, 1],
+        "outer_sections_durations_ms": [0, 5]
+      }
+    }
+  ]
+}
+```
+
+A test case either has `expected` (the expected output values) or `expected_error` (the 
+name of the expected exception, or `null` if the operation must succeed).
+
+| operation | input | result |
+|---|---|---|
+| `compress_timestamps` | `unix_timestamps` | `expected`: `first_unix_timestamp_ms`, `outer_sections_durations_ms`, `inner_sections_durations_ms`, `sections_sizes` |
+| `decompress_timestamps` | `first_unix_timestamp_ms`, `outer_sections_durations_ms`, `inner_sections_durations_ms`, `sections_sizes` | `expected`: `unix_timestamps` |
+| `compress_int_values`, `compress_double_values` | `values` | `expected`: `compressed_values` |
+| `decompress_int_values`, `decompress_double_values` | `compressed_values` | `expected`: `decompressed_values` |
+| `compress_data` | `unix_timestamps`, sensors, `timezone_offset_min` | `expected_error` |
+| `decompress_data` | `first_unix_timestamp_ms`, `outer_sections_durations_ms`, `inner_sections_durations_ms`, `sections_sizes`, sensors, `timezone_offset_min` | `expected_error` |
+
+### Validation tests
+
+- Each validation test targets exactly one validation rule; all other inputs are valid. 
+  Tests without timestamps naturally also have a mismatching number of values.
+- Inputs that are not listed are absent (i.e. unset in the `Data` message).
+- Sensors are given in one of two ways:
+  - `int_values` / `double_values` each describe one sensor with these values and a type 
+    that is valid and unique within the test.
+  - `sensors` lists the sensors explicitly. Each entry contains the sensor type as in the 
+    protobuf JSON mapping (`photoplethysmograph`, `accelerometer` or `electrocardiogram`; 
+    unset fields have their default value) and either `int_values` or `double_values`, e.g. 
+    `{"photoplethysmograph": {"color": "COLOR_GREEN", "channel": 1}, "int_values": [1, 2, 3]}`.
+- In `decompress_data` tests the values are the compressed values as stored in the `Data` 
+  message.
+
+### Large integers
+
+Integers outside of the safe JSON range ±(2^53 − 1), e.g. the limits of `int64`, are 
+encoded as decimal strings (as in the protobuf JSON mapping), e.g. `"-9223372036854775808"`.

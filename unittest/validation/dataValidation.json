@@ -1,0 +1,692 @@
+{
+  "tests": [
+    {
+      "name": "MissingUnixTimestampsTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with only int values for one sensor and no unix timestamps",
+      "input": {
+        "int_values": [0, 3, 1, 3, 2]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "MissingSensorTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with only unix timestamps and no sensor",
+      "input": {
+        "unix_timestamps": [1, 2, 3, 4, 5]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "DifferentNumberSensorIntValuesTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with unix timestamps and int values of different length",
+      "input": {
+        "unix_timestamps": [1, 2, 3, 4, 5],
+        "int_values": [3, 1, 3, 2, 7, 6, 4]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "DifferentNumberSensorDoubleValuesTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with unix timestamps and double values of different length",
+      "input": {
+        "unix_timestamps": [1, 2, 3, 4, 5],
+        "double_values": [3, 1, 3, 2, 7, 6, 4]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "DifferentNumberSensorMixedValuesTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with two sensors of different length",
+      "input": {
+        "unix_timestamps": [1, 2, 3, 4, 5],
+        "double_values": [3, 1, 3, 2, 7],
+        "int_values": [3, 1, 3, 2, 7, 6, 4]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "WrongTimeZoneOffsetNegativeTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a too negative timezone_offset_min in the metadata",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "int_values": [1, 2, 3],
+        "timezone_offset_min": -721
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "WrongTimeZoneOffsetPositiveTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a too positive timezone_offset_min in the metadata",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "int_values": [1, 2, 3],
+        "timezone_offset_min": 841
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "DuplicateUnixTimestampsTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with duplicate unix timestamps",
+      "input": {
+        "unix_timestamps": [1, 2, 2, 3, 4],
+        "int_values": [1, 2, 3, 4, 5]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "DecreasingUnixTimestampsTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with unix timestamps that are not in ascending order",
+      "input": {
+        "unix_timestamps": [1, 3, 2, 4, 5],
+        "int_values": [1, 2, 3, 4, 5]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "MaxSectionDurationTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with the largest inner section duration that fits into uint32",
+      "input": {
+        "unix_timestamps": [0, 4294967295],
+        "int_values": [1, 2]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "InnerSectionDurationOverflowTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with an inner section duration that does not fit into uint32",
+      "input": {
+        "unix_timestamps": [0, 4294967296],
+        "int_values": [1, 2]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "OuterSectionDurationOverflowTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with an outer section duration that does not fit into uint32 while all differences between consecutive timestamps do",
+      "input": {
+        "unix_timestamps": [0, 1, 2, 4294967297],
+        "int_values": [1, 2, 3, 4]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "MaxIntValueDeltaTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with the largest difference between int values that fits into int64",
+      "input": {
+        "unix_timestamps": [1, 2],
+        "int_values": ["-9223372036854775808", -1]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "IntValueDeltaOverflowTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a difference between int values that does not fit into int64",
+      "input": {
+        "unix_timestamps": [1, 2],
+        "int_values": ["-9223372036854775808", "9223372036854775807"]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "MissingSensorTypeTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a sensor without type",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "int_values": [1, 2, 3]
+          }
+        ]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "DuplicatePpgSensorTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with two green PPG sensors without channel",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [1, 2, 3]
+          },
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [4, 5, 6]
+          }
+        ]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "DuplicatePpgSensorExplicitChannelTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with two green PPG sensors with the same channel, one of them set explicitly to the default value",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN",
+              "channel": 0
+            },
+            "int_values": [1, 2, 3]
+          },
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [4, 5, 6]
+          }
+        ]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "DistinctPpgChannelsTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with two green PPG sensors with different channels",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN",
+              "channel": 0
+            },
+            "int_values": [1, 2, 3]
+          },
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN",
+              "channel": 1
+            },
+            "int_values": [4, 5, 6]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "DistinctPpgLightTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a green and a red PPG sensor with the same channel",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [1, 2, 3]
+          },
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_RED"
+            },
+            "int_values": [4, 5, 6]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "DuplicateAccSensorTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with two x coordinate ACC sensors with the same channel",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE",
+              "channel": 1
+            },
+            "int_values": [1, 2, 3]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE",
+              "channel": 1
+            },
+            "int_values": [4, 5, 6]
+          }
+        ]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "DistinctAccChannelsTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with two x coordinate ACC sensors with different channels",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE",
+              "channel": 0
+            },
+            "int_values": [1, 2, 3]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE",
+              "channel": 1
+            },
+            "int_values": [4, 5, 6]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "DistinctAccTypesTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with x, y and z coordinate ACC sensors with the same channel",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE"
+            },
+            "int_values": [1, 2, 3]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_Y_COORDINATE"
+            },
+            "int_values": [4, 5, 6]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_Z_COORDINATE"
+            },
+            "int_values": [7, 8, 9]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "DuplicateEcgChannelTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with two ECG sensors with the same channel",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "electrocardiogram": {
+              "channel": 2
+            },
+            "int_values": [1, 2, 3]
+          },
+          {
+            "electrocardiogram": {
+              "channel": 2
+            },
+            "int_values": [4, 5, 6]
+          }
+        ]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "DistinctSensorTypesSameChannelTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a PPG, an ACC and an ECG sensor that all use channel 0",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [1, 2, 3]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE"
+            },
+            "int_values": [4, 5, 6]
+          },
+          {
+            "electrocardiogram": {},
+            "double_values": [0.1, 0.2, 0.3]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "MissingUnixTimestampsTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with only int values for one sensor and no timestamps container",
+      "input": {
+        "int_values": [1, 2, 3]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "MissingSensorTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with only a timestamps container and no sensor",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [2],
+        "outer_sections_durations_ms": [0]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "MismatchedTimestampVectorLengthsTest1",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with timestamps container vectors of different length. inner_sections_durations_ms is too long.",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [2, 2],
+        "outer_sections_durations_ms": [0],
+        "int_values": [1, 2, 3]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "MismatchedTimestampVectorLengthsTest2",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with timestamps container vectors of different length. outer_sections_durations_ms is too long.",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [2],
+        "outer_sections_durations_ms": [0, 10],
+        "int_values": [1, 2, 3]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "MismatchedTimestampVectorLengthsTest3",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with timestamps container vectors of different length. sections_sizes is too long.",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3, 3],
+        "inner_sections_durations_ms": [2],
+        "outer_sections_durations_ms": [0],
+        "int_values": [1, 2, 3, 4, 5, 6]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "SensorIntValueCountMismatchTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with different number of timestamps and int values",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [5],
+        "inner_sections_durations_ms": [2],
+        "outer_sections_durations_ms": [0],
+        "int_values": [3, 2]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "SensorDoubleValueCountMismatchTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with different number of timestamps and double values",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [5],
+        "inner_sections_durations_ms": [2],
+        "outer_sections_durations_ms": [0],
+        "double_values": [3.1, 2.2]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "OuterSectionDurationFirstValueTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a first outer_sections_durations_ms value that is not 0",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [1],
+        "inner_sections_durations_ms": [0],
+        "outer_sections_durations_ms": [10],
+        "double_values": [3.1]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "OuterSectionDurationValueTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with an outer_sections_durations_ms value of 0 after the first section",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [1, 1],
+        "inner_sections_durations_ms": [0, 0],
+        "outer_sections_durations_ms": [0, 0],
+        "double_values": [3.1, 2.2]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "OverlappingSectionsTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a section that starts before the previous section has ended",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [4, 4],
+        "inner_sections_durations_ms": [1, 1],
+        "outer_sections_durations_ms": [0, 2],
+        "int_values": [1, 1, 1, 1, 1, 1, 1, 1]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "TouchingSectionsTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a section that starts at the last timestamp of the previous section",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [4, 4],
+        "inner_sections_durations_ms": [1, 1],
+        "outer_sections_durations_ms": [0, 3],
+        "int_values": [1, 1, 1, 1, 1, 1, 1, 1]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "InnerSectionDurationZeroTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with an inner_sections_durations_ms value of 0 for a section with more than one timestamp",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [2, 1],
+        "inner_sections_durations_ms": [0, 0],
+        "outer_sections_durations_ms": [0, 1],
+        "double_values": [3.1, 2.2, 1.3]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "InnerSectionDurationSingleTimestampTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with an inner_sections_durations_ms value that is not 0 for the only section consisting of a single timestamp",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [1],
+        "inner_sections_durations_ms": [2],
+        "outer_sections_durations_ms": [0],
+        "double_values": [3.1]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "InnerSectionDurationSingleTimestampTest2",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with an inner_sections_durations_ms value that is not 0 for a last section consisting of a single timestamp",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [2, 1],
+        "inner_sections_durations_ms": [2, 3],
+        "outer_sections_durations_ms": [0, 5],
+        "double_values": [3.1, 2.2, 1.3]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "ValidSingleTimestampLastSectionTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a valid last section consisting of a single timestamp",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [2, 1],
+        "inner_sections_durations_ms": [2, 0],
+        "outer_sections_durations_ms": [0, 5],
+        "double_values": [3.1, 2.2, 1.3]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "ValidSingleTimestampFirstSectionTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a valid first section consisting of a single timestamp",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [1, 3],
+        "inner_sections_durations_ms": [0, 1],
+        "outer_sections_durations_ms": [0, 5],
+        "double_values": [3.1, 2.2, 1.3, 0.4]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "SectionsSizesZeroTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a sections_sizes value of 0",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [2, 0],
+        "inner_sections_durations_ms": [2, 2],
+        "outer_sections_durations_ms": [0, 5],
+        "double_values": [3.1, 2.2]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "IntValueOverflowTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with compressed int values whose cumulative sum does not fit into int64",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [2],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "int_values": ["9223372036854775807", 1]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "WrongTimeZoneOffsetNegativeTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a too negative timezone_offset_min in the metadata",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "int_values": [1, 1, 1],
+        "timezone_offset_min": -721
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "WrongTimeZoneOffsetPositiveTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a too positive timezone_offset_min in the metadata",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "int_values": [1, 1, 1],
+        "timezone_offset_min": 841
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "LegacyDuplicatePpgSensorTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process of a file written before the channel fields existed with two green PPG sensors without channel",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [1, 1, 1]
+          },
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [2, 2, 2]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "LegacyDuplicateAccSensorTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process of a file written before the channel fields existed with two x coordinate ACC sensors without channel",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE"
+            },
+            "int_values": [1, 1, 1]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE"
+            },
+            "int_values": [2, 2, 2]
+          }
+        ]
+      },
+      "expected_error": null
+    }
+  ]
+}
