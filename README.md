@@ -293,41 +293,25 @@ Output:
 
 Procedure:
   Set sectionStartIndices ← FindSectionIndices(unixTimestampsMs)
-  Set numberOfSections ← length(sectionStartIndices)
-
-  If numberOfSections == 0
+  If sectionStartIndices is empty:
     Return
 
-  Set sizeUnixTimestamps ← length(unixTimestampsMs)
   Set firstUnixTimestampMs ← unixTimestampsMs[0]
-  Append 0 to outerSectionsDurationsMs
+  // each section ends where the next one starts, the last one at the end of the list
+  Set sectionEndIndices ← sectionStartIndices without its first element, followed by length(unixTimestampsMs)
+  // the first section is its own predecessor, so its outer section duration is 0
+  Set previousStartIndex ← 0
+  For k from 0 to length(sectionStartIndices) - 1:
+    Set startIndex ← sectionStartIndices[k]
+    Set sectionSize ← sectionEndIndices[k] - startIndex
 
-  If numberOfSections == 1
-    If sizeUnixTimestamps > 1
-      Append unixTimestampsMs[1] - firstUnixTimestampMs to innerSectionsDurationsMs
+    Append sectionSize to sectionsSizes
+    Append unixTimestampsMs[startIndex] - unixTimestampsMs[previousStartIndex] to outerSectionsDurationsMs
+    If sectionSize > 1:
+      Append unixTimestampsMs[startIndex + 1] - unixTimestampsMs[startIndex] to innerSectionsDurationsMs
     Else
       Append 0 to innerSectionsDurationsMs
-    Append sizeUnixTimestamps to sectionsSizes
-    Return
-
-  Append unixTimestampsMs[1] - firstUnixTimestampMs to innerSectionsDurationsMs
-  Append sectionStartIndices[1] to sectionsSizes
-
-  For i from 1 to numberOfSections - 2
-    Set previousSectionIndex ← sectionStartIndices[i - 1]
-    Set currentSectionIndex ← sectionStartIndices[i]
-    Set nextSectionIndex ← sectionStartIndices[i + 1]
-    Append unixTimestampsMs[currentSectionIndex + 1] - unixTimestampsMs[currentSectionIndex] to innerSectionsDurationsMs
-    Append unixTimestampsMs[currentSectionIndex] - unixTimestampsMs[previousSectionIndex] to outerSectionsDurationsMs
-    Append nextSectionIndex - currentSectionIndex to sectionsSizes
-
-  Set lastSectionIndex ← sectionStartIndices[numberOfSections - 1]
-  Append unixTimestampsMs[lastSectionIndex] - unixTimestampsMs[sectionStartIndices[numberOfSections - 2]] to outerSectionsDurationsMs
-  If sizeUnixTimestamps - 1 == lastSectionIndex:
-    Append 0 to innerSectionsDurationsMs
-  Else
-    Append unixTimestampsMs[lastSectionIndex + 1] - unixTimestampsMs[lastSectionIndex] to innerSectionsDurationsMs
-  Append sizeUnixTimestamps - lastSectionIndex to sectionsSizes
+    Set previousStartIndex ← startIndex
 </pre>
 
 Because a new section always takes over the following timestamp, only the last section
