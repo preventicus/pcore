@@ -133,9 +133,9 @@ class CompressedTimestampsContainer {
 %% === Sensor ===
 
 class Sensor {
-  %% oneof Values:
+  %% oneof values:
   +values: IntValuesContainer | DoubleValuesContainer
-  %% oneof Type:
+  %% oneof type:
   +type: Photoplethysmograph | Accelerometer | Electrocardiogram
 }
 
@@ -166,7 +166,7 @@ class AccelerometerType {
 %% === Photoplethysmograph ===
 
 class Photoplethysmograph {
-  %% oneof Light:
+  %% oneof light:
   +wavelength_nm: uint32
   +color: PhotoplethysmographColor
   +channel: uint32

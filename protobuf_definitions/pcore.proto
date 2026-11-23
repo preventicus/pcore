@@ -91,7 +91,7 @@ message Data { // This is the outer layer.
 			repeated double values = 1;
 		}
 
-		oneof Values {
+		oneof values {
 			IntValuesContainer int_values_container = 1;
 			DoubleValuesContainer double_values_container = 2;
 		}
@@ -124,7 +124,7 @@ message Data { // This is the outer layer.
 				COLOR_RED = 2;
 				COLOR_BLUE = 3;
 			}
-			oneof Light {
+			oneof light {
 				uint32 wavelength_nm = 1; // LED-based PPG sensors (e.g. wearables): wavelength of the LED in nanometers
 				Color color = 2; // camera-based PPG (e.g. smartphones): color channel of the RGB image sensor
 			}
@@ -135,7 +135,7 @@ message Data { // This is the outer layer.
 			uint32 channel = 1; // distinguishes several ECG channels (leads)
 		}
 
-		oneof Type {
+		oneof type {
 			Photoplethysmograph photoplethysmograph = 6;
 			Accelerometer accelerometer = 7;
 			Electrocardiogram electrocardiogram = 8;
