@@ -18,6 +18,8 @@ When changing an algorithm or validation rule, update the README pseudocode/rule
 
 ## Commands
 
+These checks also run in CI (`.github/workflows/spec-checks.yml`) on every pull request and on pushes to `main`; keep both in sync.
+
 ```bash
 # Check that the proto compiles
 protoc --proto_path=protobuf_definitions --descriptor_set_out=/dev/null pcore.proto

@@ -1,0 +1,42 @@
+name: Spec checks
+
+# Runs the checks from CLAUDE.md on every pull request and on pushes to main.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Read-only token: the checks only read files. Pull requests from forks run with
+# their own code, so the workflow must not get write access or secrets.
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends protobuf-compiler
+          protoc --version
+
+      - name: Proto compiles
+        run: protoc --proto_path=protobuf_definitions --descriptor_set_out=/dev/null pcore.proto
+
+      - name: Test files are valid JSON
+        run: |
+          failed=0
+          for f in unittest/*/*.json; do
+            python3 -m json.tool "$f" > /dev/null || { echo "invalid: $f"; failed=1; }
+          done
+          exit $failed
+
+      - name: README example is valid protobuf text format
+        run: |
+          python3 -c "s=open('README.md').read(); print(s[s.index('    compressed_timestamps_container {'):s.index('## Test Specifications')])" \
+            | protoc --proto_path=protobuf_definitions --encode=com.preventicus.pcore.Data pcore.proto > /dev/null
