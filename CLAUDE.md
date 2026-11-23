@@ -47,6 +47,7 @@ The JSON format (operations, `expected` vs. `expected_error`, sensor inputs) is 
 - **Timestamp compression**: timestamps (strictly increasing) are split into sections with a constant interval. Per section the container stores the interval (`inner_sections_durations_ms`), the distance from the previous section's start (`outer_sections_durations_ms`, first element always `0`), and the point count (`sections_sizes`). Inner duration is `0` exactly when a section has a single timestamp; the compressor only produces that for the last section.
 - **Value compression**: `IntValuesContainer` (`sint64`) stores deltas, with the first value as a delta from zero; `DoubleValuesContainer` stores values unchanged.
 - **Sensor identification**: a sensor is identified by its type message with all fields (PPG: light + `channel`, ACC: `type` + `channel`, ECG: `channel`), never by array position. Uniqueness and a set type are enforced only when compressing; decompression must accept legacy files (written before the PPG/ACC `channel` fields) with duplicate identifications and preserve sensor order.
+- **Allowed sensor values**: a PPG has a light with color red, green or blue or a wavelength of 350–1000 nm, an ACC type is not `TYPE_UNSPECIFIED`, an ECG channel is at most 22. Unlike sensor type and uniqueness, these are checked in both directions (README validation rules 11 and 12).
 - **Schema evolution**: `Sensor` reserves field numbers 3–5 for future value containers and 9–15 for future sensor types. Don't renumber existing fields.
 
 ## Conventions
