@@ -424,7 +424,7 @@
       "expected_error": "InvalidDataException"
     },
     {
-      "name": "MismatchedTimestampVectorLengthsTest1",
+      "name": "TooLongInnerSectionsDurationsTest",
       "operation": "decompress_data",
       "purpose": "Test decompressing process with timestamps container vectors of different length. inner_sections_durations_ms is too long.",
       "input": {
@@ -437,7 +437,7 @@
       "expected_error": "InvalidDataException"
     },
     {
-      "name": "MismatchedTimestampVectorLengthsTest2",
+      "name": "TooLongOuterSectionsDurationsTest",
       "operation": "decompress_data",
       "purpose": "Test decompressing process with timestamps container vectors of different length. outer_sections_durations_ms is too long.",
       "input": {
@@ -450,7 +450,7 @@
       "expected_error": "InvalidDataException"
     },
     {
-      "name": "MismatchedTimestampVectorLengthsTest3",
+      "name": "TooLongSectionsSizesTest",
       "operation": "decompress_data",
       "purpose": "Test decompressing process with timestamps container vectors of different length. sections_sizes is too long.",
       "input": {
@@ -593,7 +593,7 @@
       "expected_error": "InvalidDataException"
     },
     {
-      "name": "InnerSectionDurationSingleTimestampTest2",
+      "name": "InnerSectionDurationSingleTimestampLastSectionTest",
       "operation": "decompress_data",
       "purpose": "Test decompressing process with an inner_sections_durations_ms value that is not 0 for a last section consisting of a single timestamp",
       "input": {
