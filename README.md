@@ -377,9 +377,6 @@ Output:
   compressedValues
 
 Procedure:
-  If values is empty:
-    Return
-
   For each value in values:
     Append value to compressedValues
 </pre>
@@ -420,9 +417,6 @@ Output:
   values // list of integers
 
 Procedure:
-  If compressedValues is empty
-    Return []
-
   Set cumulativeSum ← 0
   For each difference in compressedValues
     Set cumulativeSum ← cumulativeSum + difference
