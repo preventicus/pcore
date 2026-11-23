@@ -52,6 +52,16 @@ The proto definition uses protobuf version 3.
   recording in minutes and does not modify the stored timestamps.
 - **Values** are stored as delivered by the device. The format does not define
   physical units or scaling of the values.
+- **Accelerometer types.** `TYPE_X_COORDINATE`, `TYPE_Y_COORDINATE` and
+  `TYPE_Z_COORDINATE` contain the acceleration along one axis.
+  `TYPE_EUCLIDEAN_DIFFERENCES_NORM` contains the Euclidean norm of the differences of
+  the x, y and z values (of the accelerometer with the same `channel`) to the previous
+  timestamp, i.e. a measure of the movement between two timestamps:
+
+  `value[i] = sqrt((x[i] - x[i-1])² + (y[i] - y[i-1])² + (z[i] - z[i-1])²)`
+
+  As with the integer compression, the previous values of the first timestamp are 0,
+  so `value[0] = sqrt(x[0]² + y[0]² + z[0]²)`.
 - **Sensor identification.** A sensor is identified by its type message including all
   of its fields, not by its position in `sensors`:
 

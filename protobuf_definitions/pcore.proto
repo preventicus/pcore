@@ -108,6 +108,9 @@ message Data { // This is the outer layer.
 				TYPE_X_COORDINATE = 1;
 				TYPE_Y_COORDINATE = 2;
 				TYPE_Z_COORDINATE = 3;
+				// Euclidean norm of the differences of the x, y and z values (same channel) to the previous timestamp:
+				//   value[i] = sqrt((x[i] - x[i-1])^2 + (y[i] - y[i-1])^2 + (z[i] - z[i-1])^2)
+				// For the first timestamp the previous values are 0: value[0] = sqrt(x[0]^2 + y[0]^2 + z[0]^2)
 				TYPE_EUCLIDEAN_DIFFERENCES_NORM = 4;
 			}
 			Type type = 1;
