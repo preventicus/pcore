@@ -1,0 +1,186 @@
+{
+  "tests": [
+    {
+      "name": "ZeroTimestampTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with empty unix timestamps array",
+      "input": {
+        "first_unix_timestamp_ms": 0,
+        "sections_sizes": [],
+        "inner_sections_durations_ms": [],
+        "outer_sections_durations_ms": []
+      },
+      "expected": {
+        "unix_timestamps": []
+      }
+    },
+    {
+      "name": "OneTimestampTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with one unix timestamp",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [1],
+        "inner_sections_durations_ms": [0],
+        "outer_sections_durations_ms": [0]
+      },
+      "expected": {
+        "unix_timestamps": [1]
+      }
+    },
+    {
+      "name": "OneSectionTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with one section",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [4],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3, 4]
+      }
+    },
+    {
+      "name": "TwoSectionTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with two sections",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [4, 4],
+        "inner_sections_durations_ms": [1, 1],
+        "outer_sections_durations_ms": [0, 5]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3, 4, 6, 7, 8, 9]
+      }
+    },
+    {
+      "name": "ThreeSectionTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with three sections",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [4, 4, 3],
+        "inner_sections_durations_ms": [1, 1, 1],
+        "outer_sections_durations_ms": [0, 5, 5]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13]
+      }
+    },
+    {
+      "name": "LastSingleTimestampSectionTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with two sections and last section is one single timestamp",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [4, 1],
+        "inner_sections_durations_ms": [1, 0],
+        "outer_sections_durations_ms": [0, 5]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3, 4, 6]
+      }
+    },
+    {
+      "name": "FirstSingleTimestampSectionTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with two sections and first timestamp is separated",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [2, 3],
+        "inner_sections_durations_ms": [2, 1],
+        "outer_sections_durations_ms": [0, 3]
+      },
+      "expected": {
+        "unix_timestamps": [1, 3, 4, 5, 6]
+      }
+    },
+    {
+      "name": "ThreeSectionDifferentGapsWithSingleTimeStampTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with three sections and different gaps between the sections, where the middle section consists of two timestamps",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3, 2, 2],
+        "inner_sections_durations_ms": [1, 3, 1],
+        "outer_sections_durations_ms": [0, 4, 4]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3, 5, 8, 9, 10]
+      }
+    },
+    {
+      "name": "ThreeSectionDifferentGapsTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with three sections and different gaps between the sections",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3, 3, 3],
+        "inner_sections_durations_ms": [1, 1, 1],
+        "outer_sections_durations_ms": [0, 4, 5]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3, 5, 6, 7, 10, 11, 12]
+      }
+    },
+    {
+      "name": "FourSectionTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with four sections and different big gaps between the sections",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [4, 3, 3, 2],
+        "inner_sections_durations_ms": [1, 3, 1, 5],
+        "outer_sections_durations_ms": [0, 5, 8, 6]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3, 4, 6, 9, 12, 14, 15, 16, 20, 25]
+      }
+    },
+    {
+      "name": "MixedSectionTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with five sections, different inner durations and a single timestamp in the last section",
+      "input": {
+        "first_unix_timestamp_ms": 0,
+        "sections_sizes": [3, 2, 4, 8, 1],
+        "inner_sections_durations_ms": [2, 7, 1, 3, 0],
+        "outer_sections_durations_ms": [0, 5, 8, 7, 30]
+      },
+      "expected": {
+        "unix_timestamps": [0, 2, 4, 5, 12, 13, 14, 15, 16, 20, 23, 26, 29, 32, 35, 38, 41, 50]
+      }
+    },
+    {
+      "name": "AllDifferentTimestampsDurationTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with three sections and each duration between the timestamps is different",
+      "input": {
+        "first_unix_timestamp_ms": 1000,
+        "sections_sizes": [2, 2, 1],
+        "inner_sections_durations_ms": [10, 30, 0],
+        "outer_sections_durations_ms": [0, 30, 70]
+      },
+      "expected": {
+        "unix_timestamps": [1000, 1010, 1030, 1060, 1100]
+      }
+    },
+    {
+      "name": "RealDataTest",
+      "operation": "decompress_timestamps",
+      "purpose": "Tests timestamps decompression with real data consisting of four sections",
+      "input": {
+        "first_unix_timestamp_ms": 1675732789987,
+        "sections_sizes": [10, 8, 5, 3],
+        "inner_sections_durations_ms": [40, 40, 80, 40],
+        "outer_sections_durations_ms": [0, 480, 400, 480]
+      },
+      "expected": {
+        "unix_timestamps": [1675732789987, 1675732790027, 1675732790067, 1675732790107, 1675732790147, 1675732790187, 1675732790227, 1675732790267, 1675732790307, 1675732790347, 1675732790467, 1675732790507, 1675732790547, 1675732790587, 1675732790627, 1675732790667, 1675732790707, 1675732790747, 1675732790867, 1675732790947, 1675732791027, 1675732791107, 1675732791187, 1675732791347, 1675732791387, 1675732791427]
+      }
+    }
+  ]
+}

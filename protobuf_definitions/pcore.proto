@@ -111,6 +111,7 @@ message Data { // This is the outer layer.
 				TYPE_EUCLIDEAN_DIFFERENCES_NORM = 4;
 			}
 			Type type = 1;
+			uint32 channel = 2; // distinguishes several accelerometers of the same type (e.g. different devices or body positions)
 		}
 
 		message Photoplethysmograph {
@@ -124,10 +125,11 @@ message Data { // This is the outer layer.
 				uint32 wavelength_nm = 1;
 				Color color = 2;
 			}
+			uint32 channel = 3; // distinguishes several photodiodes / measurement sites with the same light
 		}
 
 		message Electrocardiogram {
-			uint32 channel = 1;
+			uint32 channel = 1; // distinguishes several ECG channels (leads)
 		}
 
 		oneof Type {
