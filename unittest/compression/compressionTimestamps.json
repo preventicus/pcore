@@ -1,7 +1,7 @@
 {
   "tests": [
     {
-      "name": "ZeroTimestampTest",
+      "name": "EmptyTimestampsTest",
       "operation": "compress_timestamps",
       "purpose": "Tests timestamps compression with empty unix timestamps array",
       "input": {
@@ -166,6 +166,20 @@
         "sections_sizes": [2, 2, 1],
         "inner_sections_durations_ms": [10, 30, 0],
         "outer_sections_durations_ms": [0, 30, 70]
+      }
+    },
+    {
+      "name": "LargeInnerSectionDurationTest",
+      "operation": "compress_timestamps",
+      "purpose": "Tests timestamps compression with an inner section duration of 3000000000 ms, which does not fit into a signed 32-bit integer",
+      "input": {
+        "unix_timestamps": [1, 3000000001]
+      },
+      "expected": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [2],
+        "inner_sections_durations_ms": [3000000000],
+        "outer_sections_durations_ms": [0]
       }
     },
     {

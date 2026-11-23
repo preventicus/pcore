@@ -92,6 +92,16 @@
       "expected_error": "InvalidDataException"
     },
     {
+      "name": "NegativeUnixTimestampTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with strictly increasing unix timestamps that start before 1970",
+      "input": {
+        "unix_timestamps": [-2, -1, 0],
+        "int_values": [1, 2, 3]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
       "name": "MaxSectionDurationTest",
       "operation": "compress_data",
       "purpose": "Test compressing process with the largest inner section duration that fits into uint32",
@@ -127,7 +137,7 @@
       "purpose": "Test compressing process with the largest difference between int values that fits into int64",
       "input": {
         "unix_timestamps": [1, 2],
-        "int_values": ["-9223372036854775808", -1]
+        "int_values": [-9223372036854775808, -1]
       },
       "expected_error": null
     },
@@ -137,7 +147,7 @@
       "purpose": "Test compressing process with a difference between int values that does not fit into int64",
       "input": {
         "unix_timestamps": [1, 2],
-        "int_values": ["-9223372036854775808", "9223372036854775807"]
+        "int_values": [-9223372036854775808, 9223372036854775807]
       },
       "expected_error": "WrongValueException"
     },
@@ -401,7 +411,20 @@
       "expected_error": "InvalidDataException"
     },
     {
-      "name": "MismatchedTimestampVectorLengthsTest1",
+      "name": "EmptyTimestampsContainerTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a timestamps container without sections and a sensor without values",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [],
+        "inner_sections_durations_ms": [],
+        "outer_sections_durations_ms": [],
+        "int_values": []
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "TooLongInnerSectionsDurationsTest",
       "operation": "decompress_data",
       "purpose": "Test decompressing process with timestamps container vectors of different length. inner_sections_durations_ms is too long.",
       "input": {
@@ -414,7 +437,7 @@
       "expected_error": "InvalidDataException"
     },
     {
-      "name": "MismatchedTimestampVectorLengthsTest2",
+      "name": "TooLongOuterSectionsDurationsTest",
       "operation": "decompress_data",
       "purpose": "Test decompressing process with timestamps container vectors of different length. outer_sections_durations_ms is too long.",
       "input": {
@@ -427,7 +450,7 @@
       "expected_error": "InvalidDataException"
     },
     {
-      "name": "MismatchedTimestampVectorLengthsTest3",
+      "name": "TooLongSectionsSizesTest",
       "operation": "decompress_data",
       "purpose": "Test decompressing process with timestamps container vectors of different length. sections_sizes is too long.",
       "input": {
@@ -462,6 +485,19 @@
         "inner_sections_durations_ms": [2],
         "outer_sections_durations_ms": [0],
         "double_values": [3.1, 2.2]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "SectionsSizesSumOverflowTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with sections_sizes whose sum is 3 when calculated with 32-bit integers (4294967295 + 4), but 4294967299 in fact",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [4294967295, 4],
+        "inner_sections_durations_ms": [1, 1],
+        "outer_sections_durations_ms": [0, 4294967295],
+        "int_values": [1, 1, 1]
       },
       "expected_error": "InvalidDataException"
     },
@@ -518,6 +554,19 @@
       "expected_error": "InvalidDataException"
     },
     {
+      "name": "OverlappingSectionsOverflowTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with overlapping sections that are only detected if (sections_sizes[0] - 1) * inner_sections_durations_ms[0] = 2 * 2147483648 is not calculated with 32-bit integers",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3, 1],
+        "inner_sections_durations_ms": [2147483648, 0],
+        "outer_sections_durations_ms": [0, 1],
+        "int_values": [1, 1, 1, 1]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
       "name": "InnerSectionDurationZeroTest",
       "operation": "decompress_data",
       "purpose": "Test decompressing process with an inner_sections_durations_ms value of 0 for a section with more than one timestamp",
@@ -544,7 +593,7 @@
       "expected_error": "InvalidDataException"
     },
     {
-      "name": "InnerSectionDurationSingleTimestampTest2",
+      "name": "InnerSectionDurationSingleTimestampLastSectionTest",
       "operation": "decompress_data",
       "purpose": "Test decompressing process with an inner_sections_durations_ms value that is not 0 for a last section consisting of a single timestamp",
       "input": {
@@ -604,7 +653,7 @@
         "sections_sizes": [2],
         "inner_sections_durations_ms": [1],
         "outer_sections_durations_ms": [0],
-        "int_values": ["9223372036854775807", 1]
+        "int_values": [9223372036854775807, 1]
       },
       "expected_error": "WrongValueException"
     },

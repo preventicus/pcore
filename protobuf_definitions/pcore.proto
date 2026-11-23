@@ -1,4 +1,4 @@
-/* 
+/*
 
 	Created by Steve Merschel 2022.
 
@@ -11,20 +11,20 @@
 	this list of conditions and the following disclaimer.
 
 	2. Redistributions in binary form must reproduce the above copyright notice,
-	this list of conditions and the following disclaimer in the documentation 
+	this list of conditions and the following disclaimer in the documentation
 	and/or other materials provided with the distribution.
 
 	3. Neither the name of the copyright holder nor the names of its contributors
 	may be used to endorse or promote products derived from this software without
 	specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+	ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 	WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
 	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-	INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
-	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+	INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 	LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 	OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 	OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -46,14 +46,14 @@ message Data { // This is the outer layer.
 	/*
 		Metadata
 	*/
-	message Metadata { // The metadata collects all global data 
+	message Metadata { // The metadata collects all global data
 		message Device {
 			string name = 1;
 			string manufacturer = 2;
 			string id = 3;
 			Version firmware_version = 4;
 		}
-		sint32 timezone_offset_min = 1; // The time zone is set in minutes 
+		sint32 timezone_offset_min = 1; // offset of local time to UTC in minutes, e.g. 60 for UTC+01:00 and -300 for UTC-05:00
 		Version pcore_version = 2; // The version of the used pcore definition
 		Device device = 3; // information about the device
 	}
@@ -61,7 +61,7 @@ message Data { // This is the outer layer.
 	Metadata metadata = 1;
 
 	/*
-		Timestamps 
+		Timestamps
 	*/
 
 	message CompressedTimestampsContainer {
@@ -80,23 +80,23 @@ message Data { // This is the outer layer.
 	message Sensor {
 
 		/*
-			Values 
+			Values
 		*/
 
-		message IntValuesContainer  {
+		message IntValuesContainer {
 			repeated sint64 values = 1;
 		}
 
-		message DoubleValuesContainer  {
+		message DoubleValuesContainer {
 			repeated double values = 1;
 		}
 
-		oneof Values {
+		oneof values {
 			IntValuesContainer int_values_container = 1;
 			DoubleValuesContainer double_values_container = 2;
 		}
 
-		reserved 3 to 5; // reserved for other values container 
+		reserved 3 to 5; // reserved for other value containers
 
 		/*
 			Type
@@ -108,6 +108,9 @@ message Data { // This is the outer layer.
 				TYPE_X_COORDINATE = 1;
 				TYPE_Y_COORDINATE = 2;
 				TYPE_Z_COORDINATE = 3;
+				// Euclidean norm of the differences of the x, y and z values (same channel) to the previous timestamp:
+				//   value[i] = sqrt((x[i] - x[i-1])^2 + (y[i] - y[i-1])^2 + (z[i] - z[i-1])^2)
+				// For the first timestamp the previous values are 0: value[0] = sqrt(x[0]^2 + y[0]^2 + z[0]^2)
 				TYPE_EUCLIDEAN_DIFFERENCES_NORM = 4;
 			}
 			Type type = 1;
@@ -121,9 +124,9 @@ message Data { // This is the outer layer.
 				COLOR_RED = 2;
 				COLOR_BLUE = 3;
 			}
-			oneof Light {
-				uint32 wavelength_nm = 1;
-				Color color = 2;
+			oneof light {
+				uint32 wavelength_nm = 1; // LED-based PPG sensors (e.g. wearables): wavelength of the LED in nanometers
+				Color color = 2; // camera-based PPG (e.g. smartphones): color channel of the RGB image sensor
 			}
 			uint32 channel = 3; // distinguishes several photodiodes / measurement sites with the same light
 		}
@@ -132,14 +135,14 @@ message Data { // This is the outer layer.
 			uint32 channel = 1; // distinguishes several ECG channels (leads)
 		}
 
-		oneof Type {
+		oneof type {
 			Photoplethysmograph photoplethysmograph = 6;
 			Accelerometer accelerometer = 7;
 			Electrocardiogram electrocardiogram = 8;
 		}
 
-		reserved 9 to 15; // reserved for other sensor types 
- 
+		reserved 9 to 15; // reserved for other sensor types
+
 	}
 
 	repeated Sensor sensors = 3;

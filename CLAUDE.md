@@ -18,6 +18,8 @@ When changing an algorithm or validation rule, update the README pseudocode/rule
 
 ## Commands
 
+These checks also run in CI (`.github/workflows/spec-checks.yml`) on every pull request and on pushes to `main`; keep both in sync.
+
 ```bash
 # Check that the proto compiles
 protoc --proto_path=protobuf_definitions --descriptor_set_out=/dev/null pcore.proto
@@ -36,7 +38,7 @@ The JSON format (operations, `expected` vs. `expected_error`, sensor inputs) is 
 
 - 2-space indentation, key order `name`, `operation`, `purpose`, `input`, `expected`/`expected_error`; lists of numbers stay on one line.
 - Test names are unique per file; `purpose` explains intent, including where values are derived from limits (e.g. "max and min int32 values") since the JSON contains only the resulting numbers.
-- Integers beyond ±(2^53−1) (e.g. `int64` limits) are written as decimal strings.
+- All integers are JSON numbers, never strings, including `int64` limits (e.g. `9223372036854775807`). Keep each field's JSON type the same in all test cases. See README "64-bit integers".
 - Validation tests target exactly one rule and keep all other inputs valid.
 
 ## Format concepts that span multiple files
