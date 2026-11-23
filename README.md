@@ -213,9 +213,9 @@ Photoplethysmograph --> PhotoplethysmographColor : color
 Accelerometer --> AccelerometerType : type
 ```
 
-## Compress
+## Compression
 
-### Timestamp Compress
+### Timestamp Compression
 
 The basic idea behind compressing a sequence of unix timestamps is to group
 all timestamps that have a constant interval between them into sections.
@@ -241,7 +241,7 @@ timestamps remains constant. If the difference changes, a new section is started
 at that point.
 
 The following algorithms demonstrate this approach. They expect the input to be
-valid according to the [compression validation rules](#compress-1), in particular
+valid according to the [compression validation rules](#compression-1), in particular
 the timestamps must be strictly increasing.
 
 **Algorithm: FindSectionIndices**
@@ -333,7 +333,7 @@ Because a new section always takes over the following timestamp, only the last s
 can consist of a single timestamp. Consequently, an inner section duration of 0 can only
 occur in the last section.
 
-### Compress Integer Value
+### Integer Value Compression
 
 To compress integer values in Protobuf, it is generally more efficient to
 store smaller numbers. Therefore, the basic idea is to save the differences
@@ -360,7 +360,7 @@ Procedure:
     Append values[i] - values[i - 1] to compressedValues
 </pre>
 
-### Compress Double Value
+### Double Value Compression
 
 Protobuf cannot further compress double-precision floating-point values.
 Therefore, double values are stored as-is.
@@ -383,9 +383,9 @@ Procedure:
     Append value to compressedValues
 </pre>
 
-## Decompress
+## Decompression
 
-### Decompress Compressed Timestamp
+### Timestamp Decompression
 <pre>
 Name:
   DecompressTimestamps
@@ -407,7 +407,7 @@ Procedure:
       Append currentTimestampMs + j * innerSectionsDurationsMs[i] to unixTimestampsMs
 </pre>
 
-### Decompress Integer Value
+### Integer Value Decompression
 <pre>
 Name:
   DecompressIntegerValues
@@ -430,7 +430,7 @@ Procedure:
   Return values
 </pre>
 
-### Decompress Double Value
+### Double Value Decompression
 <pre>
 Name:
   DecompressDoubleValues
@@ -466,7 +466,7 @@ manipulated file would pass rule 3 of the decompression and then request more th
 `uint32` values of 2^31 and above appear as negative numbers and must be converted
 first (e.g. with `Integer.toUnsignedLong`).
 
-### Compress
+### Compression
 
 Data is only allowed to be compressed if:
 
@@ -489,7 +489,7 @@ Data is only allowed to be compressed if:
 10. no two sensors have the same identification, see
     [Sensor identification](#scope-and-constraints) (`InvalidDataException`).
 
-### Decompress
+### Decompression
 
 Data is only allowed to be decompressed if:
 
