@@ -53,7 +53,7 @@ message Data { // This is the outer layer.
 			string id = 3;
 			Version firmware_version = 4;
 		}
-		sint32 timezone_offset_min = 1; // offset of local time to UTC in minutes, e.g. 60 for UTC+01:00 and -300 for UTC-05:00
+		sint32 timezone_offset_min = 1; // offset of local time to UTC in minutes, e.g. 60 for UTC+01:00 and -300 for UTC-05:00; valid range: -720..840 (inclusive)
 		Version pcore_version = 2; // The version of the used pcore definition
 		Device device = 3; // information about the device
 	}
@@ -113,7 +113,7 @@ message Data { // This is the outer layer.
 				// For the first timestamp the previous values are 0: value[0] = sqrt(x[0]^2 + y[0]^2 + z[0]^2)
 				TYPE_EUCLIDEAN_DIFFERENCES_NORM = 4;
 			}
-			Type type = 1;
+			Type type = 1; // TYPE_UNSPECIFIED is not allowed
 			uint32 channel = 2; // distinguishes several accelerometers of the same type (e.g. different devices or body positions)
 		}
 
@@ -124,15 +124,15 @@ message Data { // This is the outer layer.
 				COLOR_RED = 2;
 				COLOR_BLUE = 3;
 			}
-			oneof light {
-				uint32 wavelength_nm = 1; // LED-based PPG sensors (e.g. wearables): wavelength of the LED in nanometers
-				Color color = 2; // camera-based PPG (e.g. smartphones): color channel of the RGB image sensor
+			oneof light { // must be set
+				uint32 wavelength_nm = 1; // LED-based PPG sensors (e.g. wearables): wavelength of the LED in nanometers; valid range: 350..1000 (inclusive)
+				Color color = 2; // camera-based PPG (e.g. smartphones): color channel of the RGB image sensor; COLOR_UNSPECIFIED is not allowed
 			}
 			uint32 channel = 3; // distinguishes several photodiodes / measurement sites with the same light
 		}
 
 		message Electrocardiogram {
-			uint32 channel = 1; // distinguishes several ECG channels (leads)
+			uint32 channel = 1; // distinguishes several ECG channels (leads); valid range: 0..22 (inclusive)
 		}
 
 		oneof type {

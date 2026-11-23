@@ -72,6 +72,28 @@
       "expected_error": "WrongValueException"
     },
     {
+      "name": "MinTimeZoneOffsetTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with the minimum allowed timezone offset of -720 minutes",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "int_values": [1, 2, 3],
+        "timezone_offset_min": -720
+      },
+      "expected_error": null
+    },
+    {
+      "name": "MaxTimeZoneOffsetTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with the maximum allowed timezone offset of 840 minutes",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "int_values": [1, 2, 3],
+        "timezone_offset_min": 840
+      },
+      "expected_error": null
+    },
+    {
       "name": "DuplicateUnixTimestampsTest",
       "operation": "compress_data",
       "purpose": "Test compressing process with duplicate unix timestamps",
@@ -835,6 +857,34 @@
         "timezone_offset_min": 841
       },
       "expected_error": "WrongValueException"
+    },
+    {
+      "name": "MinTimeZoneOffsetTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with the minimum allowed timezone offset of -720 minutes",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "int_values": [1, 1, 1],
+        "timezone_offset_min": -720
+      },
+      "expected_error": null
+    },
+    {
+      "name": "MaxTimeZoneOffsetTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with the maximum allowed timezone offset of 840 minutes",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "int_values": [1, 1, 1],
+        "timezone_offset_min": 840
+      },
+      "expected_error": null
     },
     {
       "name": "LegacyDuplicatePpgSensorTest",
