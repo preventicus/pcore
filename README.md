@@ -26,7 +26,8 @@ For data compression purposes, measurement values are stored as follows:
 
 - Integer values are stored as differences between consecutive values (deltas); the
   first value is stored as difference to zero.
-- Floating-point values are stored as-is, without compression.
+- Floating-point values are stored as-is, without compression. They must be finite
+  (no `NaN` or `Infinity`).
 
 The compressed timestamps and values can later be reconstructed using the provided
 decompression logic. This ensures both space-efficient storage and accurate recovery
@@ -479,12 +480,14 @@ Data is only allowed to be compressed if:
    most 4294967295 ms (`WrongValueException`),
 6. every difference between consecutive integer values (and the first value itself)
    fits into a signed 64-bit integer (`WrongValueException`),
-7. timezone_offset_min is between -720 and 840 (`WrongValueException`),
-8. every sensor has a sensor type set, i.e. one of photoplethysmograph, accelerometer
+7. every double value is finite, i.e. not `NaN`, `Infinity` or `-Infinity`
+   (`WrongValueException`),
+8. timezone_offset_min is between -720 and 840 (`WrongValueException`),
+9. every sensor has a sensor type set, i.e. one of photoplethysmograph, accelerometer
    or electrocardiogram (`InvalidDataException`). This does not refer to the
    `type` field of `Accelerometer`, which may be `TYPE_UNSPECIFIED`,
-9. no two sensors have the same identification, see
-   [Sensor identification](#scope-and-constraints) (`InvalidDataException`).
+10. no two sensors have the same identification, see
+    [Sensor identification](#scope-and-constraints) (`InvalidDataException`).
 
 ### Decompress
 
@@ -506,7 +509,9 @@ Data is only allowed to be decompressed if:
 7. an element of inner_sections_durations_ms is 0 if and only if the corresponding
    section consists of a single timestamp (`sections_sizes[i] == 1`) (`InvalidDataException`),
 8. every decompressed integer value fits into a signed 64-bit integer (`WrongValueException`),
-9. timezone_offset_min is between -720 and 840 (`WrongValueException`).
+9. every double value is finite, i.e. not `NaN`, `Infinity` or `-Infinity`
+   (`WrongValueException`),
+10. timezone_offset_min is between -720 and 840 (`WrongValueException`).
 
 Whether a sensor type is set and whether the sensor identifications are unique is
 intentionally not checked when decompressing, so that files written before the `channel`
@@ -632,6 +637,8 @@ name of the expected exception, or `null` if the operation must succeed).
     `{"photoplethysmograph": {"color": "COLOR_GREEN", "channel": 1}, "int_values": [1, 2, 3]}`.
 - In `decompress_data` tests the values are the compressed values as stored in the `Data`
   message.
+- The rules for finite double values have no test case, because JSON cannot represent
+  `NaN` and `Infinity`. Implementations should cover these rules with their own tests.
 
 ### 64-bit integers
 
