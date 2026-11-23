@@ -1,7 +1,7 @@
 {
   "tests": [
     {
-      "name": "ZeroTimestampTest",
+      "name": "EmptyTimestampsTest",
       "operation": "compress_timestamps",
       "purpose": "Tests timestamps compression with empty unix timestamps array",
       "input": {
