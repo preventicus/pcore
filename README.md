@@ -254,13 +254,13 @@ Input:
   unixTimestampsMs = [t₀, t₁, ..., tₙ]  // strictly increasing list of Unix timestamps
 
 Output:
-  SectionIdxs = [s₀, s₁, ..., sₘ] // indices in the Timestamps array where new sections start
+  sectionStartIndices = [s₀, s₁, ..., sₘ] // indices in unixTimestampsMs where new sections start
 
 Procedure:
   If unixTimestampsMs is empty:
     Return
 
-  Append 0 to SectionIdxs
+  Append 0 to sectionStartIndices
   Set isNewSection ← TRUE
 
   For i from 1 to length(unixTimestampsMs) - 1:
@@ -271,10 +271,10 @@ Procedure:
       Set isNewSection ← FALSE
 
     If duration ≠ referenceDuration:
-      Append i to SectionIdxs
+      Append i to sectionStartIndices
       Set isNewSection ← TRUE
 
-  Return SectionIdxs
+  Return sectionStartIndices
 </pre>
 
 **Algorithm: CompressTimestamps**
@@ -292,8 +292,8 @@ Output:
   sectionsSizes
 
 Procedure:
-  Set sectionIdxs ← FindSectionIndices(unixTimestampsMs)
-  Set numberOfSections ← length(sectionIdxs)
+  Set sectionStartIndices ← FindSectionIndices(unixTimestampsMs)
+  Set numberOfSections ← length(sectionStartIndices)
 
   If numberOfSections == 0
     Return
@@ -311,18 +311,18 @@ Procedure:
     Return
 
   Append unixTimestampsMs[1] - firstUnixTimestampMs to innerSectionsDurationsMs
-  Append sectionIdxs[1] to sectionsSizes
+  Append sectionStartIndices[1] to sectionsSizes
 
   For i from 1 to numberOfSections - 2
-    Set previousSectionIndex ← sectionIdxs[i - 1]
-    Set currentSectionIndex ← sectionIdxs[i]
-    Set nextSectionIndex ← sectionIdxs[i + 1]
+    Set previousSectionIndex ← sectionStartIndices[i - 1]
+    Set currentSectionIndex ← sectionStartIndices[i]
+    Set nextSectionIndex ← sectionStartIndices[i + 1]
     Append unixTimestampsMs[currentSectionIndex + 1] - unixTimestampsMs[currentSectionIndex] to innerSectionsDurationsMs
     Append unixTimestampsMs[currentSectionIndex] - unixTimestampsMs[previousSectionIndex] to outerSectionsDurationsMs
     Append nextSectionIndex - currentSectionIndex to sectionsSizes
 
-  Set lastSectionIndex ← sectionIdxs[numberOfSections - 1]
-  Append unixTimestampsMs[lastSectionIndex] - unixTimestampsMs[sectionIdxs[numberOfSections - 2]] to outerSectionsDurationsMs
+  Set lastSectionIndex ← sectionStartIndices[numberOfSections - 1]
+  Append unixTimestampsMs[lastSectionIndex] - unixTimestampsMs[sectionStartIndices[numberOfSections - 2]] to outerSectionsDurationsMs
   If sizeUnixTimestamps - 1 == lastSectionIndex:
     Append 0 to innerSectionsDurationsMs
   Else
