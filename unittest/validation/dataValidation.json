@@ -489,6 +489,19 @@
       "expected_error": "InvalidDataException"
     },
     {
+      "name": "SectionsSizesSumOverflowTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with sections_sizes whose sum is 3 when calculated with 32-bit integers (4294967295 + 4), but 4294967299 in fact",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [4294967295, 4],
+        "inner_sections_durations_ms": [1, 1],
+        "outer_sections_durations_ms": [0, 4294967295],
+        "int_values": [1, 1, 1]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
       "name": "OuterSectionDurationFirstValueTest",
       "operation": "decompress_data",
       "purpose": "Test decompressing process with a first outer_sections_durations_ms value that is not 0",
@@ -537,6 +550,19 @@
         "inner_sections_durations_ms": [1, 1],
         "outer_sections_durations_ms": [0, 3],
         "int_values": [1, 1, 1, 1, 1, 1, 1, 1]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "OverlappingSectionsOverflowTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with overlapping sections that are only detected if (sections_sizes[0] - 1) * inner_sections_durations_ms[0] = 2 * 2147483648 is not calculated with 32-bit integers",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3, 1],
+        "inner_sections_durations_ms": [2147483648, 0],
+        "outer_sections_durations_ms": [0, 1],
+        "int_values": [1, 1, 1, 1]
       },
       "expected_error": "InvalidDataException"
     },

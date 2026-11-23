@@ -434,6 +434,18 @@ Two kinds of errors are distinguished:
   mismatching lengths, timestamps that are not strictly increasing, ...).
 - `WrongValueException`: a single value is outside of its allowed range.
 
+The rules must be checked in the listed order.
+
+**Arithmetic.** All calculations in the validation rules and in the compression and
+decompression algorithms must be done with signed 64-bit integers (or wider) and must
+not overflow. In particular, sums and products of `uint32` values such as
+`sections_sizes` and `inner_sections_durations_ms` must not be calculated in 32 bit:
+in 32 bit, `sections_sizes = [4294967295, 4]` would sum up to 3, so that a small,
+manipulated file would pass rule 3 of the decompression and then request more than
+4 billion timestamps. In languages without unsigned integers (e.g. Java, Kotlin),
+`uint32` values of 2^31 and above appear as negative numbers and must be converted
+first (e.g. with `Integer.toUnsignedLong`).
+
 ### Compress
 
 Data is only allowed to be compressed if:

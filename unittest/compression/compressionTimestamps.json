@@ -169,6 +169,20 @@
       }
     },
     {
+      "name": "LargeInnerSectionDurationTest",
+      "operation": "compress_timestamps",
+      "purpose": "Tests timestamps compression with an inner section duration of 3000000000 ms, which does not fit into a signed 32-bit integer",
+      "input": {
+        "unix_timestamps": [1, 3000000001]
+      },
+      "expected": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [2],
+        "inner_sections_durations_ms": [3000000000],
+        "outer_sections_durations_ms": [0]
+      }
+    },
+    {
       "name": "RealDataTest",
       "operation": "compress_timestamps",
       "purpose": "Tests timestamps compression with real data consisting of four sections",
