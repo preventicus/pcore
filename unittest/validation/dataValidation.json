@@ -137,7 +137,7 @@
       "purpose": "Test compressing process with the largest difference between int values that fits into int64",
       "input": {
         "unix_timestamps": [1, 2],
-        "int_values": ["-9223372036854775808", -1]
+        "int_values": [-9223372036854775808, -1]
       },
       "expected_error": null
     },
@@ -147,7 +147,7 @@
       "purpose": "Test compressing process with a difference between int values that does not fit into int64",
       "input": {
         "unix_timestamps": [1, 2],
-        "int_values": ["-9223372036854775808", "9223372036854775807"]
+        "int_values": [-9223372036854775808, 9223372036854775807]
       },
       "expected_error": "WrongValueException"
     },
@@ -653,7 +653,7 @@
         "sections_sizes": [2],
         "inner_sections_durations_ms": [1],
         "outer_sections_durations_ms": [0],
-        "int_values": ["9223372036854775807", 1]
+        "int_values": [9223372036854775807, 1]
       },
       "expected_error": "WrongValueException"
     },

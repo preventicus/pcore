@@ -624,7 +624,13 @@ name of the expected exception, or `null` if the operation must succeed).
 - In `decompress_data` tests the values are the compressed values as stored in the `Data`
   message.
 
-### Large integers
+### 64-bit integers
 
-Integers outside of the safe JSON range ±(2^53 − 1), e.g. the limits of `int64`, are
-encoded as decimal strings (as in the protobuf JSON mapping), e.g. `"-9223372036854775808"`.
+All integers are JSON numbers, including the limits of `int64`, e.g.
+`-9223372036854775808`. Each field always has the same JSON type in all test cases.
+
+Integers outside of ±(2^53 − 1) (= ±9007199254740991) occur in a few validation tests.
+They must be read exactly as 64-bit integers. Typed decoders usually do this when the
+target type is a 64-bit integer (e.g. `Int64` in Swift, `Long` in Kotlin/Java). Parsers
+that read every number as a double, such as `JSON.parse` in JavaScript, round these
+values and need a parser that supports big integers.
