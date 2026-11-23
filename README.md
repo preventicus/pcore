@@ -73,6 +73,15 @@ The proto definition uses protobuf version 3.
 
   These are different kinds of sensors. A green camera channel and a green LED with
   530 nm are therefore different sensors, even though both use green light.
+- **Allowed sensor values.** The fields of a sensor type are restricted to:
+
+  | Sensor type | allowed values |
+  |---|---|
+  | `Photoplethysmograph` | a light is set; `color` is `COLOR_RED`, `COLOR_GREEN` or `COLOR_BLUE`; `wavelength_nm` is between 350 and 1000 (inclusive) |
+  | `Accelerometer` | `type` is not `TYPE_UNSPECIFIED` |
+  | `Electrocardiogram` | `channel` is at most 22 |
+
+  These restrictions are checked when compressing and when decompressing.
 - **Sensor identification.** A sensor is identified by its type message including all
   of its fields, not by its position in `sensors`:
 
@@ -463,10 +472,14 @@ Data is only allowed to be compressed if:
    (`WrongValueException`),
 8. timezone_offset_min is between -720 and 840 (`WrongValueException`),
 9. every sensor has a sensor type set, i.e. one of photoplethysmograph, accelerometer
-   or electrocardiogram (`InvalidDataException`). This does not refer to the
-   `type` field of `Accelerometer`, which may be `TYPE_UNSPECIFIED`,
+   or electrocardiogram (`InvalidDataException`). The `type` field of `Accelerometer`
+   is checked by rule 12,
 10. no two sensors have the same identification, see
-    [Sensor identification](#scope-and-constraints) (`InvalidDataException`).
+    [Sensor identification](#scope-and-constraints) (`InvalidDataException`),
+11. every photoplethysmograph has a light set, i.e. `color` or `wavelength_nm`
+    (`InvalidDataException`),
+12. every sensor type has allowed values, see
+    [Allowed sensor values](#scope-and-constraints) (`WrongValueException`).
 
 ### Decompression
 
@@ -490,11 +503,17 @@ Data is only allowed to be decompressed if:
 8. every decompressed integer value fits into a signed 64-bit integer (`WrongValueException`),
 9. every double value is finite, i.e. not `NaN`, `Infinity` or `-Infinity`
    (`WrongValueException`),
-10. timezone_offset_min is between -720 and 840 (`WrongValueException`).
+10. timezone_offset_min is between -720 and 840 (`WrongValueException`),
+11. every photoplethysmograph has a light set, i.e. `color` or `wavelength_nm`
+    (`InvalidDataException`),
+12. every sensor type has allowed values, see
+    [Allowed sensor values](#scope-and-constraints) (`WrongValueException`).
 
 Whether a sensor type is set and whether the sensor identifications are unique is
 intentionally not checked when decompressing, so that files written before the `channel`
 fields existed can still be read (see [Files without channels](#scope-and-constraints)).
+The light and the allowed values of a sensor type that is set (rules 11 and 12) are
+checked in both directions.
 
 ## Example
 

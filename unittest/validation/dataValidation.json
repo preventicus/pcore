@@ -390,6 +390,157 @@
       "expected_error": null
     },
     {
+      "name": "MissingPpgLightTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a PPG sensor without light",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {},
+            "int_values": [1, 2, 3]
+          }
+        ]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "PpgColorUnspecifiedTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a PPG sensor with an unspecified color",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_UNSPECIFIED"
+            },
+            "int_values": [1, 2, 3]
+          }
+        ]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "MinPpgWavelengthTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a PPG sensor with the minimum allowed wavelength of 350 nm",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelengthNm": 350
+            },
+            "int_values": [1, 2, 3]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "PpgWavelengthTooSmallTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a PPG sensor with a wavelength below the minimum of 350 nm",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelengthNm": 349
+            },
+            "int_values": [1, 2, 3]
+          }
+        ]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "MaxPpgWavelengthTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a PPG sensor with the maximum allowed wavelength of 1000 nm",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelengthNm": 1000
+            },
+            "int_values": [1, 2, 3]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "PpgWavelengthTooLargeTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with a PPG sensor with a wavelength above the maximum of 1000 nm",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelengthNm": 1001
+            },
+            "int_values": [1, 2, 3]
+          }
+        ]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "AccTypeUnspecifiedTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with an ACC sensor with an unspecified type",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "accelerometer": {
+              "type": "TYPE_UNSPECIFIED"
+            },
+            "int_values": [1, 2, 3]
+          }
+        ]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "MaxEcgChannelTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with an ECG sensor with the maximum allowed channel 22",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "electrocardiogram": {
+              "channel": 22
+            },
+            "int_values": [1, 2, 3]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "EcgChannelTooLargeTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with an ECG sensor with a channel above the maximum of 22",
+      "input": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "electrocardiogram": {
+              "channel": 23
+            },
+            "int_values": [1, 2, 3]
+          }
+        ]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
       "name": "MissingUnixTimestampsTest",
       "operation": "decompress_data",
       "purpose": "Test decompressing process with only int values for one sensor and no timestamps container",
@@ -736,6 +887,184 @@
         ]
       },
       "expected_error": null
+    },
+    {
+      "name": "MissingPpgLightTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a PPG sensor without light",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "photoplethysmograph": {},
+            "int_values": [1, 1, 1]
+          }
+        ]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "PpgColorUnspecifiedTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a PPG sensor with an unspecified color",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_UNSPECIFIED"
+            },
+            "int_values": [1, 1, 1]
+          }
+        ]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "MinPpgWavelengthTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a PPG sensor with the minimum allowed wavelength of 350 nm",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelengthNm": 350
+            },
+            "int_values": [1, 1, 1]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "PpgWavelengthTooSmallTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a PPG sensor with a wavelength below the minimum of 350 nm",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelengthNm": 349
+            },
+            "int_values": [1, 1, 1]
+          }
+        ]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "MaxPpgWavelengthTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a PPG sensor with the maximum allowed wavelength of 1000 nm",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelengthNm": 1000
+            },
+            "int_values": [1, 1, 1]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "PpgWavelengthTooLargeTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a PPG sensor with a wavelength above the maximum of 1000 nm",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelengthNm": 1001
+            },
+            "int_values": [1, 1, 1]
+          }
+        ]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "AccTypeUnspecifiedTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with an ACC sensor with an unspecified type",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "accelerometer": {
+              "type": "TYPE_UNSPECIFIED"
+            },
+            "int_values": [1, 1, 1]
+          }
+        ]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
+      "name": "MaxEcgChannelTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with an ECG sensor with the maximum allowed channel 22",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "electrocardiogram": {
+              "channel": 22
+            },
+            "int_values": [1, 1, 1]
+          }
+        ]
+      },
+      "expected_error": null
+    },
+    {
+      "name": "EcgChannelTooLargeTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with an ECG sensor with a channel above the maximum of 22",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "electrocardiogram": {
+              "channel": 23
+            },
+            "int_values": [1, 1, 1]
+          }
+        ]
+      },
+      "expected_error": "WrongValueException"
     }
   ]
 }
