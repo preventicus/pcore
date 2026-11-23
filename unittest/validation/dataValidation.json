@@ -92,6 +92,16 @@
       "expected_error": "InvalidDataException"
     },
     {
+      "name": "NegativeUnixTimestampTest",
+      "operation": "compress_data",
+      "purpose": "Test compressing process with strictly increasing unix timestamps that start before 1970",
+      "input": {
+        "unix_timestamps": [-2, -1, 0],
+        "int_values": [1, 2, 3]
+      },
+      "expected_error": "WrongValueException"
+    },
+    {
       "name": "MaxSectionDurationTest",
       "operation": "compress_data",
       "purpose": "Test compressing process with the largest inner section duration that fits into uint32",
@@ -397,6 +407,19 @@
         "sections_sizes": [3],
         "inner_sections_durations_ms": [2],
         "outer_sections_durations_ms": [0]
+      },
+      "expected_error": "InvalidDataException"
+    },
+    {
+      "name": "EmptyTimestampsContainerTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing process with a timestamps container without sections and a sensor without values",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [],
+        "inner_sections_durations_ms": [],
+        "outer_sections_durations_ms": [],
+        "int_values": []
       },
       "expected_error": "InvalidDataException"
     },
