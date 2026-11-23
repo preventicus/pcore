@@ -125,8 +125,8 @@ message Data { // This is the outer layer.
 				COLOR_BLUE = 3;
 			}
 			oneof Light {
-				uint32 wavelength_nm = 1;
-				Color color = 2;
+				uint32 wavelength_nm = 1; // LED-based PPG sensors (e.g. wearables): wavelength of the LED in nanometers
+				Color color = 2; // camera-based PPG (e.g. smartphones): color channel of the RGB image sensor
 			}
 			uint32 channel = 3; // distinguishes several photodiodes / measurement sites with the same light
 		}

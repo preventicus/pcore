@@ -62,6 +62,15 @@ The proto definition uses protobuf version 3.
 
   As with the integer compression, the previous values of the first timestamp are 0,
   so `value[0] = sqrt(x[0]² + y[0]² + z[0]²)`.
+- **PPG light.** The light of a `Photoplethysmograph` is described in one of two ways,
+  depending on how the PPG is measured:
+  - `color` for camera-based PPG, e.g. with a smartphone camera: the color channel
+    (red, green or blue) of the RGB image sensor.
+  - `wavelength_nm` for LED-based PPG sensors, e.g. in wearables: the wavelength of the
+    LED in nanometers.
+
+  These are different kinds of sensors. A green camera channel and a green LED with
+  530 nm are therefore different sensors, even though both use green light.
 - **Sensor identification.** A sensor is identified by its type message including all
   of its fields, not by its position in `sensors`:
 
