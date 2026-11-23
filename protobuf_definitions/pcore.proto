@@ -46,14 +46,14 @@ message Data { // This is the outer layer.
 	/*
 		Metadata
 	*/
-	message Metadata { // The metadata collects all global data 
+	message Metadata { // The metadata collects all global data
 		message Device {
 			string name = 1;
 			string manufacturer = 2;
 			string id = 3;
 			Version firmware_version = 4;
 		}
-		sint32 timezone_offset_min = 1; // The time zone is set in minutes 
+		sint32 timezone_offset_min = 1; // offset of local time to UTC in minutes, e.g. 60 for UTC+01:00 and -300 for UTC-05:00
 		Version pcore_version = 2; // The version of the used pcore definition
 		Device device = 3; // information about the device
 	}

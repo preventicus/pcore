@@ -49,8 +49,9 @@ The proto definition uses protobuf version 3.
   100 Hz) or that are not sampled simultaneously must be stored in separate `Data`
   messages, i.e. in separate *.pcore files.
 - **Timestamps** are Unix timestamps in milliseconds (UTC) and must be strictly
-  increasing. `timezone_offset_min` describes the local time zone offset of the
-  recording in minutes and does not modify the stored timestamps.
+  increasing. `timezone_offset_min` describes the offset of the local time of the
+  recording to UTC in minutes (e.g. 60 for UTC+01:00, -300 for UTC-05:00) and does not
+  modify the stored timestamps.
 - **Values** are stored as delivered by the device. The format does not define
   physical units or scaling of the values.
 - **Accelerometer types.** `TYPE_X_COORDINATE`, `TYPE_Y_COORDINATE` and
