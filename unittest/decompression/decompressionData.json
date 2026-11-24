@@ -1,0 +1,404 @@
+{
+  "tests": [
+    {
+      "name": "PPGColorSensorTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing data with a photoplethysmograph with a color and int values",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [5],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_RED"
+            },
+            "int_values": [0, 3, -2, 2, -1]
+          }
+        ]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3, 4, 5],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_RED"
+            },
+            "int_values": [0, 3, 1, 3, 2]
+          }
+        ]
+      }
+    },
+    {
+      "name": "PPGWavelengthSensorTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing data with a photoplethysmograph with a wavelength and double values",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelength_nm": 530
+            },
+            "double_values": [3.1234, 4.1234, 5.5]
+          }
+        ]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelength_nm": 530
+            },
+            "double_values": [3.1234, 4.1234, 5.5]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ACCSensorTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing data with an accelerometer with int values",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE"
+            },
+            "int_values": [3, 1, -5]
+          }
+        ]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE"
+            },
+            "int_values": [3, 4, -1]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ECGSensorTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing data with an electrocardiogram with int values",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "electrocardiogram": {
+              "channel": 2
+            },
+            "int_values": [100, 100, -50]
+          }
+        ]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "electrocardiogram": {
+              "channel": 2
+            },
+            "int_values": [100, 200, 150]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ChannelsTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing data with sensors that differ only in their channel, and sensors of different types with the same channel",
+      "input": {
+        "first_unix_timestamp_ms": 10,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [10],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelength_nm": 530,
+              "channel": 3
+            },
+            "int_values": [1, 1, 1]
+          },
+          {
+            "photoplethysmograph": {
+              "wavelength_nm": 530,
+              "channel": 4
+            },
+            "int_values": [7, 1, 1]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE",
+              "channel": 3
+            },
+            "int_values": [4, 1, 1]
+          }
+        ]
+      },
+      "expected": {
+        "unix_timestamps": [10, 20, 30],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "wavelength_nm": 530,
+              "channel": 3
+            },
+            "int_values": [1, 2, 3]
+          },
+          {
+            "photoplethysmograph": {
+              "wavelength_nm": 530,
+              "channel": 4
+            },
+            "int_values": [7, 8, 9]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE",
+              "channel": 3
+            },
+            "int_values": [4, 5, 6]
+          }
+        ]
+      }
+    },
+    {
+      "name": "TimeZoneOffsetTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing data with a timezone offset",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "electrocardiogram": {
+              "channel": 1
+            },
+            "int_values": [1, 1, 1]
+          }
+        ],
+        "timezone_offset_min": -120
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "electrocardiogram": {
+              "channel": 1
+            },
+            "int_values": [1, 2, 3]
+          }
+        ],
+        "timezone_offset_min": -120
+      }
+    },
+    {
+      "name": "CompleteTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing data with a timezone offset, two sections of timestamps and ten sensors of all types with int and double values",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3, 2],
+        "inner_sections_durations_ms": [1, 10],
+        "outer_sections_durations_ms": [0, 12],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_RED"
+            },
+            "int_values": [0, 3, -2, 2, -1]
+          },
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [3, 2, -3, -1, 3]
+          },
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_BLUE"
+            },
+            "int_values": [0, 0, 0, 0, 0]
+          },
+          {
+            "photoplethysmograph": {
+              "wavelength_nm": 400
+            },
+            "int_values": [4, 2, -3, -1, 2]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE"
+            },
+            "int_values": [0, 0, 0, -200, 200]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_Y_COORDINATE"
+            },
+            "int_values": [0, 0, 0, 200, -200]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_Z_COORDINATE"
+            },
+            "int_values": [0, 100, -100, -200, 200]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_EUCLIDEAN_DIFFERENCES_NORM"
+            },
+            "double_values": [3.21274389, 8.723849, 400.782934, 43.83924, 64.34894]
+          },
+          {
+            "electrocardiogram": {
+              "channel": 1
+            },
+            "int_values": [0, 0, 0, 40, -40]
+          },
+          {
+            "electrocardiogram": {
+              "channel": 2
+            },
+            "int_values": [0, 40, -40, 20, -20]
+          }
+        ],
+        "timezone_offset_min": 310
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3, 13, 23],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_RED"
+            },
+            "int_values": [0, 3, 1, 3, 2]
+          },
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [3, 5, 2, 1, 4]
+          },
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_BLUE"
+            },
+            "int_values": [0, 0, 0, 0, 0]
+          },
+          {
+            "photoplethysmograph": {
+              "wavelength_nm": 400
+            },
+            "int_values": [4, 6, 3, 2, 4]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_X_COORDINATE"
+            },
+            "int_values": [0, 0, 0, -200, 0]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_Y_COORDINATE"
+            },
+            "int_values": [0, 0, 0, 200, 0]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_Z_COORDINATE"
+            },
+            "int_values": [0, 100, 0, -200, 0]
+          },
+          {
+            "accelerometer": {
+              "type": "TYPE_EUCLIDEAN_DIFFERENCES_NORM"
+            },
+            "double_values": [3.21274389, 8.723849, 400.782934, 43.83924, 64.34894]
+          },
+          {
+            "electrocardiogram": {
+              "channel": 1
+            },
+            "int_values": [0, 0, 0, 40, 0]
+          },
+          {
+            "electrocardiogram": {
+              "channel": 2
+            },
+            "int_values": [0, 40, 0, 20, 0]
+          }
+        ],
+        "timezone_offset_min": 310
+      }
+    },
+    {
+      "name": "LegacySensorsTest",
+      "operation": "decompress_data",
+      "purpose": "Test decompressing data with a file written before the channel fields existed: two sensors with the same identification and a sensor without sensor type, which keep their order",
+      "input": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [3],
+        "inner_sections_durations_ms": [1],
+        "outer_sections_durations_ms": [0],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [1, 1, 1]
+          },
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [4, 1, 1]
+          },
+          {
+            "int_values": [7, 1, 1]
+          }
+        ]
+      },
+      "expected": {
+        "unix_timestamps": [1, 2, 3],
+        "sensors": [
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [1, 2, 3]
+          },
+          {
+            "photoplethysmograph": {
+              "color": "COLOR_GREEN"
+            },
+            "int_values": [4, 5, 6]
+          },
+          {
+            "int_values": [7, 8, 9]
+          }
+        ]
+      }
+    }
+  ]
+}
