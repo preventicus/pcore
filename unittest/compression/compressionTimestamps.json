@@ -127,6 +127,20 @@
       }
     },
     {
+      "name": "ThreeSectionDifferentBigGapsTest",
+      "operation": "compress_timestamps",
+      "purpose": "Tests timestamps compression with three sections that have different inner durations and bigger gaps between the sections",
+      "input": {
+        "unix_timestamps": [1, 2, 3, 4, 6, 9, 20, 24, 28]
+      },
+      "expected": {
+        "first_unix_timestamp_ms": 1,
+        "sections_sizes": [4, 2, 3],
+        "inner_sections_durations_ms": [1, 3, 4],
+        "outer_sections_durations_ms": [0, 5, 14]
+      }
+    },
+    {
       "name": "FourSectionTest",
       "operation": "compress_timestamps",
       "purpose": "Tests timestamps compression with four sections and different big gaps between the sections",
