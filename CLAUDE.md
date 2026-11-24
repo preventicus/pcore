@@ -48,6 +48,8 @@ The JSON format (operations, `expected` vs. `expected_error`, sensor inputs) is 
 - **Value compression**: `IntValuesContainer` (`sint64`) stores deltas, with the first value as a delta from zero; `DoubleValuesContainer` stores values unchanged.
 - **Sensor identification**: a sensor is identified by its type message with all fields (PPG: light + `channel`, ACC: `type` + `channel`, ECG: `channel`), never by array position. Uniqueness and a set type are enforced only when compressing; decompression must accept legacy files (written before the PPG/ACC `channel` fields) with duplicate identifications and preserve sensor order.
 - **Allowed sensor values**: a PPG has a light with color red, green or blue or a wavelength of 350–1000 nm, an ACC type is not `TYPE_UNSPECIFIED`, an ECG channel is at most 22. Unlike sensor type and uniqueness, these are checked in both directions (README validation rules 11 and 12).
+- **JSON representation**: compressed data as JSON is the protobuf JSON format of the `Data` message (README "Scope and Constraints"), never a library-specific object layout; readers accept the alternatives that format allows (numbers for 64-bit integers and enums, proto field names). The test files in `unittest/` are a separate format with their own rules (integers are always JSON numbers).
+- **Number types**: languages without fixed-width integer types (e.g. JavaScript) must check the ranges of the integer fields themselves and reject 64-bit integers beyond ±(2^53 − 1) instead of rounding them (README "Validation", paragraph "Number types"). These checks have no test cases.
 - **Schema evolution**: `Sensor` reserves field numbers 3–5 for future value containers and 9–15 for future sensor types. Don't renumber existing fields.
 
 ## Conventions

@@ -101,6 +101,24 @@ The proto definition uses protobuf version 3.
   must still accept such files and must keep the order of the sensors, because in these
   files the order is the only way to tell such sensors apart. For this reason the
   uniqueness is only checked when compressing.
+- **JSON representation.** A *.pcore file holds the binary protobuf encoding of the
+  `Data` message. If compressed data is exchanged as JSON instead, it must be written in
+  the [protobuf JSON format](https://protobuf.dev/programming-guides/json/) of the `Data`
+  message, as the protobuf libraries produce it (e.g. `json_format.MessageToJson` in
+  Python, `JsonFormat` in Java), so that every implementation can read it. In this
+  format a sensor holds its values container and its sensor type directly, enum values
+  are written by name (e.g. `"COLOR_GREEN"`), 64-bit integers are written as strings and
+  fields with their default value may be omitted:
+
+  `{"intValuesContainer": {"values": ["5", "2"]}, "electrocardiogram": {"channel": 1}}`
+
+  A reader must accept everything that the format allows, in particular numbers instead
+  of strings for 64-bit integers, numbers instead of names for enum values and the field
+  names of the proto file (e.g. `compressed_timestamps_container`). A layout that depends
+  on one library, such as a dump of its in-memory objects, is not a JSON representation of
+  pcore. Data read from JSON is validated like data read from a file. This concerns
+  compressed data as JSON, not the test files in `unittest/`, which have their own format
+  (see [Test Specifications](#test-specifications)).
 
 ## Protobuf Struct
 
@@ -453,6 +471,18 @@ manipulated file would pass rule 3 of the decompression and then request more th
 4 billion timestamps. In languages without unsigned integers (e.g. Java, Kotlin),
 `uint32` values of 2^31 and above appear as negative numbers and must be converted
 first (e.g. with `Integer.toUnsignedLong`).
+
+**Number types.** The protobuf types of the integer fields limit their values: a
+`uint32` or `uint64` field holds no negative value, and no integer field holds a
+fraction. In languages whose number type does not guarantee this (e.g. `number` in
+JavaScript, which is a double), an implementation must check it in addition to the rules
+below, for every integer field of the `Data` message: the fields of the
+compressed_timestamps_container, the integer values, `channel`, `wavelength_nm`, the enum
+values, timezone_offset_min and the version numbers. A violation is a
+`WrongValueException`. Such a number type represents integers exactly only up to
+±(2^53 − 1); an implementation that uses it must reject 64-bit integers beyond that with a
+`WrongValueException` instead of rounding them. These checks have no test cases, because
+languages with fixed-width integer types cannot express the invalid inputs.
 
 ### Compression
 
